@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>jQuery autocompleter</title>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+	<script type="text/javascript" src="jquery.autocomplete.js"></script>
+	<script type="text/javascript">
+	
+$(function() {
+	$("#ac1").autocomplete('search.php');
+	$("#flush").click(function() {
+		$("#ac1").data('autocompleter');
+	});
+});
+
+	</script>
+	<link rel="stylesheet" type="text/css" href="jquery.autocomplete.css">
+</head>
+
+<body>
+	
+	<h1>jQuery autocomplete</h1>
+	
+	<p class="info">TODO: intro text</p>
+	
+	<h2>Demo 1</h2>
+	
+	<form>
+		<input type="text" id="ac1">
+	</form>
+	
+	<a href="#" id="flush">Fush the cache</a>
+	
+</body>
