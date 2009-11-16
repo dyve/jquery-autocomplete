@@ -10,7 +10,12 @@
 $(function() {
 	$("#ac1").autocomplete('search.php');
 	$("#flush").click(function() {
-		$("#ac1").data('autocompleter');
+		var ac = $("#ac1").data('autocompleter');
+		if (ac && ac.cache && $.isFunction(ac.cache.flush)) {
+			ac.cache.flush();
+		} else {
+			alert('Error flushing cache');
+		}
 	});
 });
 
