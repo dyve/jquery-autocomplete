@@ -293,24 +293,26 @@
 			if ($.isFunction(ac.options.sortFunction)) {
 				sortFunction = ac.options.sortFunction;
 			} else {
-				sortFunction = function(a, b) {
-					a = String(a.value);
-					b = String(b.value);
-					if (!ac.options.matchCase) {
-						a = a.toLowerCase();
-						b = b.toLowerCase();
-					}
-					if (a > b) {
-						return 1;
-					}
-					if (a < b) {
-						return -1;
-					}
-					return 0;
-				}
+				sortFunction = ac.sortValueAlpha;
 			}
 			results.sort(sortFunction);
 			return results;
+		};
+		
+		ac.sortValueAlpha = function(a, b) {
+			a = String(a.value);
+			b = String(b.value);
+			if (!ac.options.matchCase) {
+				a = a.toLowerCase();
+				b = b.toLowerCase();
+			}
+			if (a > b) {
+				return 1;
+			}
+			if (a < b) {
+				return -1;
+			}
+			return 0;
 		};
 		
 		ac.showResults = function(results, filter) {
@@ -319,7 +321,7 @@
 			var numResults = results.length;
 			for (i = 0; i < numResults; i++) {
 				result = results[i];
-				$li = $('<li>' + result.value + '</li>');
+				$li = $('<li>' + ac.showValue(result.value, result.data) + '</li>');
 				$li.data('value', result.value);
 				$li.data('data', result.data);
 				$li.click(function() {
@@ -350,6 +352,14 @@
 			if (ac.autoFill(first, filter)) {
 				ac.focusItem($first);
 			}
+		};
+		
+		ac.showValue = function(value, data) {
+			if ($.isFunction(ac.options.showValue)) {
+				return ac.options.showValue(value, data);
+			} else {
+				return value;
+			}			
 		};
 		
 		ac.autoFill = function(value, filter) {
@@ -444,7 +454,7 @@
 			} else {
 				return value;
 			}			
-		}
+		};
 		
 		ac.finish = function() {
 			if (keyTimeout) {
@@ -515,6 +525,7 @@
 		sortFunction: false,
 		onItemSelect: false,
 		onNoMatch: false,
+		displayValue: false
 	};
 	
 })(jQuery);

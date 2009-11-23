@@ -8,7 +8,9 @@
 	<script type="text/javascript">
 	
 $(function() {
+
 	$("#ac1").autocomplete('search.php');
+
 	$("#flush").click(function() {
 		var ac = $("#ac1").data('autocompleter');
 		if (ac && ac.cache && $.isFunction(ac.cache.flush)) {
@@ -17,6 +19,25 @@ $(function() {
 			alert('Error flushing cache');
 		}
 	});
+
+	$("#ac2").autocomplete({
+		url: 'search.php',
+		sortFunction: function(a, b) {
+			a = String(a.data[0]).toLowerCase();
+			b = String(b.data[0]).toLowerCase();
+			if (a > b) {
+				return 1;
+			}
+			if (a < b) {
+				return -1;
+			}
+			return 0;
+		},
+		showValue: function(value, data) {
+			return '<span style="color:red">' + value + '</span>';
+		}
+	});
+
 });
 
 	</script>
@@ -35,7 +56,13 @@ $(function() {
 		<input type="text" id="ac1">
 	</form>
 	
-	<a href="#" id="flush">Fush the cache</a>
+	<p><a href="#" id="flush">Fush the cache</a></p>
+
+	<h2>Demo 2 (sorted on scientific name)</h2>
+	
+	<form>
+		<input type="text" id="ac2">
+	</form>
 	
 </body>
 
