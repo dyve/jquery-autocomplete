@@ -13,8 +13,8 @@ $(function() {
 
 	$("#flush").click(function() {
 		var ac = $("#ac1").data('autocompleter');
-		if (ac && ac.cache && $.isFunction(ac.cache.flush)) {
-			ac.cache.flush();
+		if (ac && $.isFunction(ac.cacheFlush)) {
+			ac.cacheFlush();
 		} else {
 			alert('Error flushing cache');
 		}

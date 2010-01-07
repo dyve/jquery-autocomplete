@@ -1,513 +1,609 @@
 /**
  * jquery.autocomplete.js
- * Version 3.0
+ * Version 3.1
  * Copyright (c) Dylan Verheul <dylan.verheul@gmail.com>
  */
 (function($) {
-	
-	var autocompleter = function(options) {
 
-		var ac = {
-			dom: {},
-			options: {}
-		};
-		
-		var selectClass = 'jquery-autocomplete-selected-item';
-		var keyTimeout = false;
-		var lastKeyPressed = false;
-		var lastValueProcessed = false;
-		var active = false;
-		var dontBlur = true;
-		
-		var cache = {
-			data: {},
-			length: 0
-		};
-		cache.set = function(index, data) {
-			if (ac.options.useCache) {
-				if (cache.length >= ac.options.maxCacheLength) {
-					cache.flush();
-				}
-				index = String(index);
-				if (cache.data[index] !== undefined) {
-					cache.length++;
-				}
-				return cache.data[index] = data;
-			}
-			return false;
+    /**
+     * Autocompleter Object
+     * @param {jQuery} $elem jQuery object with one input tag
+     * @param {Object=} options Settings
+     * @constructor
+     */
+    $.Autocompleter = function($elem, options) {
+
+        /**
+         * Cached data
+         * @type Object
+         * @private
+         */
+        this.cacheData_ = {};
+
+        /**
+         * Number of cached data items
+         * @type number
+         * @private
+         */
+        this.cacheLength_ = 0;
+
+        /**
+         * Class name to mark selected item
+         * @type string
+         * @private
+         */
+    	this.selectClass_ = 'jquery-autocomplete-selected-item';
+
+    	/**
+    	 * Handler to activation timeout
+    	 * @type ?number
+    	 * @private
+    	 */
+        this.keyTimeout_ = null;
+        
+    	/**
+    	 * Last key pressed in the input field (store for behavior)
+    	 * @type ?number
+    	 * @private
+    	 */
+        this.lastKeyPressed_ = null;
+        
+    	/**
+    	 * Last value processed by the autocompleter
+    	 * @type ?string
+    	 * @private
+    	 */
+        this.lastProcessedValue_ = null;
+        
+    	/**
+    	 * Last value selected by the user
+    	 * @type ?string
+    	 * @private
+    	 */
+        this.lastSelectedValue_ = null;
+        
+    	/**
+    	 * Is this autocompleter active?
+    	 * @type boolean
+    	 * @private
+    	 */
+        this.active_ = false;
+        
+    	/**
+    	 * Is it OK to finish on blur?
+    	 * @type boolean
+    	 * @private
+    	 */
+        this.finishOnBlur_ = false;
+
+        /**
+         * Assert parameters
+         */
+        if (!$elem || !($elem instanceof jQuery) || $elem.length !== 1 || $elem.get(0).tagName.toUpperCase() !== 'INPUT') {
+            alert('Invalid parameter for jquery.Autocompleter, jQuery object with one element with INPUT tag expected');
+            return;
+        }
+
+        /**
+         * Init and sanitize options
+         */
+        if (typeof options === 'string') {
+            this.options = { url:options };
+        } else {
+            this.options = options;            
+        }
+		this.options.maxCacheLength = parseInt(this.options.maxCacheLength);
+		if (isNaN(this.options.maxCacheLength) || this.options.maxCacheLength < 1) {
+			this.options.maxCacheLength = 1;
 		}
-		cache.get = function(index) {
-			var indexLength, searchLength, search, maxPos, pos;
-			if (ac.options.useCache) {
-				index = String(index);
-				indexLength = index.length;
-				if (ac.options.matchSubset) {
-					searchLength = 1;
-				} else {
-					searchLength = indexLength;
-				}
-				while (searchLength <= indexLength) {
-					if (ac.options.matchInside) {
-						maxPos = indexLength - searchLength;
+		this.options.minChars = parseInt(this.options.minChars);
+		if (isNaN(this.options.minChars) || this.options.minChars < 1) {
+			this.options.minChars = 1;
+		}
+
+        /**
+         * Init DOM elements repository
+         */
+        this.dom = {};
+        
+        /**
+         * Store the input element we're attached to in the repository, add class
+         */
+        this.dom.$elem = $elem;
+		if (this.options.inputClass) {
+			this.dom.$elem.addClass(this.options.inputClass);
+		}
+
+        /**
+         * Create DOM element to hold results, add class, position according to $elem
+         */
+		this.dom.$results = $('<div></div>').hide();
+		if (this.options.resultsClass) {
+			this.dom.$results.addClass(this.options.resultsClass);
+		}
+        var offset = this.dom.$elem.offset();
+		this.dom.$results.css({
+			position: 'absolute',
+			top: offset.top + $elem.outerHeight(),
+			left: offset.left
+		});
+		$('body').append(this.dom.$results);
+
+        /**
+         * Shortcut to self
+         */
+        var self = this;
+
+        /**
+         * Attach keyboard monitoring to $elem
+         */
+		$elem.keydown(function(e) {
+			self.lastKeyPressed_ = e.keyCode;
+			switch(self.lastKeyPressed_) {
+
+				case 38: // up
+					e.preventDefault;
+					if (self.active_) {
+						self.focusPrev();
 					} else {
-						maxPos = 0;
+						self.activate();
 					}
-					pos = 0;
-					while (pos <= maxPos) {
-						search = index.substr(0, searchLength);
-						if (cache.data[search] !== undefined) {
-							return cache.data[search];
-						}
-						pos++;
+					return false;							
+				break;
+				
+				case 40: // down
+					e.preventDefault;
+					if (self.active_) {
+						self.focusNext();
+					} else {
+						self.activate();
 					}
-					searchLength++;
-				}				
+					return false;							
+				break;
+				
+				case 9: // tab
+				case 13: // return
+					if (self.active_) {
+						e.preventDefault;
+						self.selectCurrent();
+						return false;							
+					}
+				break;
+
+				default:
+					self.activate();
+					
 			}
-			return false;
+		});
+		$elem.blur(function() {
+			if (self.finishOnBlur_) {
+				setTimeout(function() { self.finish(); }, 200);					
+			}
+		});
+        
+    }
+    
+	$.Autocompleter.prototype.cacheRead = function(filter) {
+		var filterLength, searchLength, search, maxPos, pos;
+		if (this.options.useCache) {
+			filter = String(filter);
+			filterLength = filter.length;
+			if (this.options.matchSubset) {
+				searchLength = 1;
+			} else {
+				searchLength = filterLength;
+			}
+			while (searchLength <= filterLength) {
+				if (this.options.matchInside) {
+					maxPos = filterLength - searchLength;
+				} else {
+					maxPos = 0;
+				}
+				pos = 0;
+				while (pos <= maxPos) {
+					search = filter.substr(0, searchLength);
+					if (this.cacheData_[search] !== undefined) {
+						return this.cacheData_[search];
+					}
+					pos++;
+				}
+				searchLength++;
+			}				
 		}
-		cache.flush = function() {
-			cache.data = {};
-			cache.length = 0;
+		return false;
+    };
+
+	$.Autocompleter.prototype.cacheWrite = function(filter, data) {
+		if (this.options.useCache) {
+			if (this.cacheLength_ >= this.options.maxCacheLength) {
+				this.cacheFlush();
+			}
+			filter = String(filter);
+			if (this.cacheData_[filter] !== undefined) {
+				this.cacheLength_++;
+			}
+			return this.cacheData_[filter] = data;
 		}
-		ac.cache = cache;
+		return false;	    
+    };
+
+	$.Autocompleter.prototype.cacheFlush = function() {
+	    this.cacheData_ = {};
+	    this.cacheLength_ = 0;
+    };
+
+	$.Autocompleter.prototype.callHook = function(hook, data) {
+		var f = this.options[hook];
+		if (f && $.isFunction(f)) {
+			return f(data, this);
+		}
+		return false;
+	};
+	
+	$.Autocompleter.prototype.activate = function() {
+	    var self = this;
+	    var activateNow = function() {
+	        self.activateNow(); 
+	    };
+		var delay = parseInt(this.options.delay);
+		if (isNaN(delay) || delay <= 0) {
+			delay = 250;
+		}
+		if (this.keyTimeout_) {
+			clearTimeout(this.keyTimeout_);
+		}
+		this.keyTimeout_ = setTimeout(activateNow, delay);
+	};
+
+    $.Autocompleter.prototype.activateNow = function() {
+		var value = this.dom.$elem.val();
+		if (value !== this.lastProcessedValue && value !== this.lastSelectedValue_) {
+			if (value.length >= this.options.minChars) {
+				this.active_ = true;
+				this.lastProcessedValue = value;
+				this.fetchData(value);				
+			}							
+		}
+	};		
+	
+	$.Autocompleter.prototype.fetchData = function(value) {
+		if (this.options.data) {
+			this.filterAndShowResults(this.options.data, value);
+		} else {
+		    var self = this;
+			this.fetchRemoteData(value, function(remoteData) {
+				self.filterAndShowResults(remoteData, value);					
+			});
+		}			
+	};
+
+	$.Autocompleter.prototype.fetchRemoteData = function(filter, callback) {
+		var data = this.cacheRead(filter);
+		if (data) {
+			callback(data);	
+		} else {
+			try {
+    		    var self = this;
+				this.dom.$elem.addClass(this.options.loadingClass);			        
+				$.get(this.makeUrl(filter), function(data) {
+					var parsed = self.parseRemoteData(data);
+					self.cacheWrite(filter, parsed);
+					self.dom.$elem.removeClass(self.options.loadingClass);
+					callback(parsed);
+				});				
+			} catch(e) {
+				this.dom.$elem.removeClass(this.options.loadingClass);
+				callback(false);
+			}				
+		}
+	};
+
+	$.Autocompleter.prototype.makeUrl = function(param) {
+	    var self = this;
+		var paramName = this.options.paramName || 'q';
+		var url = this.options.url;
+		var params = $.extend({}, this.options.extraParams);
+		var urlAppend = [];
+		params[paramName] = param;
+		$.each(params, function(index, value) {
+			urlAppend.push(self.makeUrlParam(index, value));
+		});
+		url += url.indexOf('?') == -1 ? '?' : '&';
+		url += urlAppend.join('&');
+		return url;
+	};
+	
+	$.Autocompleter.prototype.makeUrlParam = function(name, value) {
+		return String(name) + '=' + encodeURIComponent(value);
+	}
+	
+	$.Autocompleter.prototype.parseRemoteData = function(remoteData) {
+		var results = [];
+		var text = String(remoteData).replace('\r\n', '\n');
+		var i, j, data, line, lines = text.split('\n');
+		var value;
+		for (i = 0; i < lines.length; i++) {
+			line = lines[i].split('|');
+			data = [];
+			for (j = 0; j < line.length; j++) {
+				data.push(unescape(line[j]));
+			}
+			value = data.shift();
+			results.push({ value: unescape(value), data: data });
+		}
+		return results;
+	};
+	
+	$.Autocompleter.prototype.filterAndShowResults = function(results, filter) {
+		this.showResults(this.filterResults(results, filter), filter);
+	};
+	
+	$.Autocompleter.prototype.filterResults = function(results, filter) {
+		
+		var filtered = [];
+		var value, data, i, result, type;
+		var regex, pattern, attributes = '';
+		
+		for (i = 0; i < results.length; i++) {
+			result = results[i];
+			type = typeof result;
+			if (type === 'string') {
+				value = result;
+				data = {};
+			} else if ($.isArray(result)) {
+				value = result.shift();
+				data = result;
+			} else if (type === 'object') {
+				value = result.value;
+				data = result.data;
+			}
+			value = String(value);
+			// Condition below means we do NOT do empty results
+			if (value) {
+				if (typeof data !== 'object') {
+					data = {};
+				}
+				pattern = String(filter);
+				if (!this.options.matchInside) {
+					pattern = '^' + pattern;
+				}
+				if (!this.options.matchCase) {
+					attributes = 'i';
+				}
+				regex = new RegExp(pattern, attributes);
+				if (regex.test(value)) {
+					filtered.push({ value: value, data: data });
+				}					
+			}
+		}
+		
+		if (this.options.sortResults) {
+			return this.sortResults(filtered);
+		}
+		
+		return filtered;
+		
+	};
+
+	$.Autocompleter.prototype.sortResults = function(results) {
+	    var self = this;
+		if ($.isFunction(this.options.sortFunction)) {
+			results.sort(this.options.sortFunction);
+		} else {
+			results.sort(function(a, b) { return self.sortValueAlpha(a, b); });
+		}
+		return results;
+	};
+	
+	$.Autocompleter.prototype.sortValueAlpha = function(a, b) {
+		a = String(a.value);
+		b = String(b.value);
+		if (!this.options.matchCase) {
+			a = a.toLowerCase();
+			b = b.toLowerCase();
+		}
+		if (a > b) {
+			return 1;
+		}
+		if (a < b) {
+			return -1;
+		}
+		return 0;
+	};
+	
+	$.Autocompleter.prototype.showResults = function(results, filter) {
+	    var self = this;
+		var $ul = $('<ul></ul>');
+		var i, result, $li, extraWidth, first = false, $first = false;
+		var numResults = results.length;
+		for (i = 0; i < numResults; i++) {
+			result = results[i];
+			$li = $('<li>' + this.showValue(result.value, result.data) + '</li>');
+			$li.data('value', result.value);
+			$li.data('data', result.data);
+			$li.click(function() {
+				var $this = $(this);
+				self.selectItem($this);
+			}).mousedown(function() {
+				self.finishOnBlur_ = false;
+			}).mousedown(function() {
+				self.finishOnBlur_ = true;
+			});
+			$ul.append($li);
+			if (first === false) {
+				first = String(result.value);
+				$first = $li;
+				$li.addClass(this.options.firstItemClass);
+			}
+			if (i == numResults - 1) {
+				$li.addClass(this.options.lastItemClass);
+			}
+		}
+		this.dom.$results.html($ul).show();
+		extraWidth = this.dom.$results.outerWidth() - this.dom.$results.width();
+		this.dom.$results.width(this.dom.$elem.outerWidth() - extraWidth);
+		$('li', this.dom.$results).hover(
+			function() { self.focusItem(this); },
+			function() { /* void */ }
+		);
+		if (this.autoFill(first, filter)) {
+			this.focusItem($first);
+		}
+	};
+	
+	$.Autocompleter.prototype.showValue = function(value, data) {
+		if ($.isFunction(this.options.showValue)) {
+			return this.options.showValue(value, data);
+		} else {
+			return value;
+		}			
+	};
+	
+	$.Autocompleter.prototype.autoFill = function(value, filter) {
+		var lcValue, lcFilter, valueLength, filterLength;
+		if (this.options.autoFill && this.lastKeyPressed_ != 8) {
+			lcValue = String(value).toLowerCase();
+			lcFilter = String(filter).toLowerCase();
+			valueLength = value.length;
+			filterLength = filter.length;
+			if (lcValue.substr(0, filterLength) === lcFilter) {
+				this.dom.$elem.val(value);
+				this.selectRange(filterLength, valueLength);
+				return true;
+			}
+		}
+		return false;
+	};
+	
+	$.Autocompleter.prototype.focusNext = function() {
+		this.focusMove(+1);
+	};
+
+	$.Autocompleter.prototype.focusPrev = function() {
+		this.focusMove(-1);
+	};
+
+	$.Autocompleter.prototype.focusMove = function(modifier) {
+		var i, $items = $('li', this.dom.$results);
+		modifier = parseInt(modifier);
+		for (var i = 0; i < $items.length; i++) {
+			if ($($items[i]).hasClass(this.selectClass_)) {
+				this.focusItem(i + modifier);
+				return;
+			}
+		}
+		this.focusItem(0);
+	};
+	
+	$.Autocompleter.prototype.focusItem = function(item) {
+		var $item, $items = $('li', this.dom.$results);
+		if ($items.length) {
+			$items.removeClass(this.selectClass_).removeClass(this.options.selectClass);
+			if (typeof item === 'number') {
+				item = parseInt(item);
+				if (item < 0) {
+					item = 0;
+				} else if (item >= $items.length) {
+					item = $items.length - 1;
+				}
+				$item = $($items[item]);
+			} else {
+				$item = $(item);
+			}
+			if ($item) {
+				$item.addClass(this.selectClass_).addClass(this.options.selectClass);				
+			}				
+		}
+	};
+	
+	$.Autocompleter.prototype.selectCurrent = function() {
+		var $item = $('li.' + this.selectClass_, this.dom.$results);
+		if ($item.length == 1) {
+			this.selectItem($item);				
+		} else {
+			this.finish();
+		}
+	};
+	
+	$.Autocompleter.prototype.selectItem = function($li) {
+		var value = $li.data('value');
+		var data = $li.data('data');
+		var displayValue = this.displayValue(value, data);
+		this.lastValueProcessed = displayValue;
+		this.lastSelectedValue_ = displayValue;
+		this.dom.$elem.val(displayValue).focus();
+		this.setCaret(displayValue.length);
+		this.callHook('onItemSelect', { value: value, data: data });
+		this.finish();
+	};
+	
+	$.Autocompleter.prototype.displayValue = function(value, data) {
+		if ($.isFunction(this.options.displayValue)) {
+			return this.options.displayValue(value, data);
+		} else {
+			return value;
+		}			
+	};
+	
+	$.Autocompleter.prototype.finish = function() {
+		if (this.keyTimeout_) {
+			clearTimeout(this.keyTimeout_);
+		}
+		if (this.dom.$elem.val() !== this.lastValueSelected) {
+			if (this.options.mustMatch) {
+				this.dom.$elem.val('');					
+			}
+			this.callHook('onNoMatch');
+		}
+		this.dom.$results.hide();
+		this.lastKeyPressed_ = null;
+		this.lastValueProcessed = null;
+		if (this.active_) {
+			this.callHook('onFinish');
+		}
+		this.active_ = false;			
+	};
+	
+	$.Autocompleter.prototype.selectRange = function(start, end) {
+		var input = this.dom.$elem.get(0);
+		if (input.setSelectionRange) {
+			input.focus();
+			input.setSelectionRange(start, end);
+		} else if (this.createTextRange) {
+			var range = this.createTextRange();
+			range.collapse(true);
+			range.moveEnd('character', end);
+			range.moveStart('character', start);
+			range.select();
+		}
+	};
+	
+	$.Autocompleter.prototype.setCaret = function(pos) {
+		this.selectRange(pos, pos);
+	};
+			
+    /**
+     * autocomplete plugin
+     */
+    $.fn.autocomplete = function(options) {
 
         if (typeof options === 'string') {
             options = { url:options };
         }
+        
+        var o = $.extend({}, $.fn.autocomplete.defaults, options);
 
-		// Set options and make sure essential options have valid values
-		$.extend(ac.options, $.fn.autocomplete.defaults || {}, options || {});
-		ac.options.maxCacheLength = parseInt(ac.options.maxCacheLength);
-		if (isNaN(ac.options.maxCacheLength) || ac.options.maxCacheLength < 1) {
-			ac.options.maxCacheLength = 1;
-		}
-		ac.options.minChars = parseInt(ac.options.minChars);
-		if (isNaN(ac.options.minChars) || ac.options.minChars < 1) {
-			ac.options.minChars = 1;
-		}
-		
-		ac.bind = function(elem) {
-			var $elem = $(elem), offset = $elem.offset();
-			ac.dom.$elem = $elem;
-			if (ac.options.inputClass) {
-				ac.dom.$elem.addClass(ac.options.inputClass);
-			}
-			ac.dom.$results = $('<div></div>').hide();
-			if (ac.options.resultsClass) {
-				ac.dom.$results.addClass(ac.options.resultsClass);
-			}
-			ac.dom.$results.css({
-				position: 'absolute',
-				top: offset.top + $elem.outerHeight(),
-				left: offset.left
-			});
-			$('body').append(ac.dom.$results);
-			$elem.data('autocompleter', ac);
-			$elem.keydown(function(e) {
-				lastKeyPressed = e.keyCode;
-				switch(lastKeyPressed) {
-
-					case 38: // up
-						e.preventDefault;
-						if (ac.active()) {
-							ac.focusPrev();
-						} else {
-							ac.activate();
-						}
-						return false;							
-					break;
-					
-					case 40: // down
-						e.preventDefault;
-						if (ac.active()) {
-							ac.focusNext();
-						} else {
-							ac.activate();
-						}
-						return false;							
-					break;
-					
-					case 9: // tab
-					case 13: // return
-						if (ac.active()) {
-							e.preventDefault;
-							ac.selectCurrent();
-							return false;							
-						}
-					break;
-
-					default:
-						ac.activate();
-						
-				}
-			});
-			$elem.blur(function() {
-				if (!dontBlur) {
-					setTimeout(ac.finish, 200);					
-				}
-			});
-		};
-		
-		ac.callHook = function(hook, data) {
-			var f = ac.options[hook];
-			if (f && $.isFunction(f)) {
-				return f(data, ac);
-			}
-			return false;
-		}
-		
-		ac.activate = function() {
-			var delay = parseInt(ac.options.delay);
-			if (isNaN(delay) || delay <= 0) {
-				delay = 250;
-			}
-			if (keyTimeout) {
-				clearTimeout(keyTimeout);
-			}
-			keyTimeout = setTimeout(ac.activateNow, delay);
-		};
-
-		ac.activateNow = function() {
-			var value = ac.dom.$elem.val();
-			if (value !== lastValueProcessed && value !== ac.lastSelectedValue()) {
-				if (value.length >= ac.options.minChars) {
-					active = true;
-					lastValueProcessed = value;
-					ac.fetchData(value);				
-				}							
-			}
-		}
-		
-		ac.fetchData = function(value) {
-			if (ac.options.data) {
-				ac.filterAndShowResults(ac.options.data, value);
-			} else {
-				ac.fetchRemoteData(value, function(remoteData) {
-					ac.filterAndShowResults(remoteData, value);					
-				});
-			}			
-		};
-
-		ac.fetchRemoteData = function(filter, callback) {
-			var data = ac.cache.get(filter);
-			if (data) {
-				callback(data);				
-			} else {
-				try {
-					ac.dom.$elem.addClass(ac.options.loadingClass);
-					$.get(ac.makeUrl(filter), function(data) {
-						var parsed = ac.parseRemoteData(data);
-						ac.cache.set(filter, parsed);
-						ac.dom.$elem.removeClass(ac.options.loadingClass);
-						callback(parsed);
-					});				
-				} catch(e) {
-					ac.dom.$elem.removeClass(ac.options.loadingClass);
-					callback(false);
-				}				
-			}
-		};
-		
-		ac.makeUrl = function(param) {
-			var paramName = ac.options.paramName || 'q';
-			var url = ac.options.url;
-			var params = $.extend({}, ac.options.extraParams);
-			var urlAppend = [];
-			params[paramName] = param;
-			$.each(params, function(index, value) {
-				urlAppend.push(ac.makeUrlParam(index, value));
-			});
-			url += url.indexOf('?') == -1 ? '?' : '&';
-			url += urlAppend.join('&');
-			return url;
-		};
-		
-		ac.makeUrlParam = function(name, value) {
-			return String(name) + '=' + encodeURIComponent(value);
-		}
-		
-		ac.parseRemoteData = function(remoteData) {
-			var results = [];
-			var text = String(remoteData).replace('\r\n', '\n');
-			var i, j, data, line, lines = text.split('\n');
-			var value;
-			for (i = 0; i < lines.length; i++) {
-				line = lines[i].split('|');
-				data = [];
-				for (j = 0; j < line.length; j++) {
-					data.push(unescape(line[j]));
-				}
-				value = data.shift();
-				results.push({ value: unescape(value), data: data });
-			}
-			return results;
-		};
-		
-		ac.filterAndShowResults = function(results, filter) {
-			ac.showResults(ac.filterResults(results, filter), filter);
-		};
-		
-		ac.filterResults = function(results, filter) {
-			var filtered = [];
-			var value, data, i, result, type;
-			var regex, pattern, attributes = '';
-			for (i = 0; i < results.length; i++) {
-				result = results[i];
-				type = typeof result;
-				if (type === 'string') {
-					value = result;
-					data = {};
-				} else if ($.isArray(result)) {
-					value = result.shift();
-					data = result;
-				} else if (type === 'object') {
-					value = result.value;
-					data = result.data;
-				}
-				value = String(value);
-				// Condition below means we do NOT do empty results
-				if (value) {
-					if (typeof data !== 'object') {
-						data = {};
-					}
-					pattern = String(filter);
-					if (!ac.options.matchInside) {
-						pattern = '^' + pattern;
-					}
-					if (!ac.options.matchCase) {
-						attributes = 'i';
-					}
-					regex = new RegExp(pattern, attributes);
-					if (regex.test(value)) {
-						filtered.push({ value: value, data: data });
-					}					
-				}
-			}
-			if (ac.options.sortResults) {
-				return ac.sortResults(filtered);
-			}
-			return filtered;
-		};
-		
-		ac.sortResults = function(results) {
-			if ($.isFunction(ac.options.sortFunction)) {
-				sortFunction = ac.options.sortFunction;
-			} else {
-				sortFunction = ac.sortValueAlpha;
-			}
-			results.sort(sortFunction);
-			return results;
-		};
-		
-		ac.sortValueAlpha = function(a, b) {
-			a = String(a.value);
-			b = String(b.value);
-			if (!ac.options.matchCase) {
-				a = a.toLowerCase();
-				b = b.toLowerCase();
-			}
-			if (a > b) {
-				return 1;
-			}
-			if (a < b) {
-				return -1;
-			}
-			return 0;
-		};
-		
-		ac.showResults = function(results, filter) {
-			var $ul = $('<ul></ul>');
-			var i, result, $li, extraWidth, first = false, $first = false;
-			var numResults = results.length;
-			for (i = 0; i < numResults; i++) {
-				result = results[i];
-				$li = $('<li>' + ac.showValue(result.value, result.data) + '</li>');
-				$li.data('value', result.value);
-				$li.data('data', result.data);
-				$li.click(function() {
-					var $this = $(this);
-					ac.selectItem($this);
-				}).mousedown(function() {
-					dontBlur = true;
-				}).mousedown(function() {
-					dontBlur = false;
-				});
-				$ul.append($li);
-				if (first === false) {
-					first = String(result.value);
-					$first = $li;
-					$li.addClass('acFirst');
-				}
-				if (i == numResults - 1) {
-					$li.addClass('acLast');
-				}
-			}
-			ac.dom.$results.html($ul).show();
-			extraWidth = ac.dom.$results.outerWidth() - ac.dom.$results.width();
-			ac.dom.$results.width(ac.dom.$elem.outerWidth() - extraWidth);
-			$('li', ac.dom.$results).hover(
-				function() { ac.focusItem(this); },
-				function() { /* void */ }
-			);
-			if (ac.autoFill(first, filter)) {
-				ac.focusItem($first);
-			}
-		};
-		
-		ac.showValue = function(value, data) {
-			if ($.isFunction(ac.options.showValue)) {
-				return ac.options.showValue(value, data);
-			} else {
-				return value;
-			}			
-		};
-		
-		ac.autoFill = function(value, filter) {
-			var lcValue, lcFilter, valueLength, filterLength;
-			if (ac.options.autoFill && lastKeyPressed != 8) {
-				lcValue = String(value).toLowerCase();
-				lcFilter = String(filter).toLowerCase();
-				valueLength = value.length;
-				filterLength = filter.length;
-				if (lcValue.substr(0, filterLength) === lcFilter) {
-					ac.dom.$elem.val(value);
-					ac.selectRange(filterLength, valueLength);
-					return true;
-				}
-			}
-			return false;
-		};
-		
-		ac.focusNext = function() {
-			ac.focusMove(+1);
-		};
-
-		ac.focusPrev = function() {
-			ac.focusMove(-1);
-		};
-
-		ac.focusMove = function(modifier) {
-			var i, $items = $('li', ac.dom.$results);
-			modifier = parseInt(modifier);
-			for (var i = 0; i < $items.length; i++) {
-				if ($($items[i]).hasClass(selectClass)) {
-					ac.focusItem(i + modifier);
-					return;
-				}
-			}
-			ac.focusItem(0);
-		};
-		
-		ac.focusItem = function(item) {
-			var $item, $items = $('li', ac.dom.$results);
-			if ($items.length) {
-				$items.removeClass(selectClass).removeClass(ac.options.selectClass);
-				if (typeof item === 'number') {
-					item = parseInt(item);
-					if (item < 0) {
-						item = 0;
-					} else if (item >= $items.length) {
-						item = $items.length - 1;
-					}
-					$item = $($items[item]);
-				} else {
-					$item = $(item);
-				}
-				if ($item) {
-					$item.addClass(selectClass).addClass(ac.options.selectClass);				
-				}				
-			}
-		};
-		
-		ac.selectCurrent = function() {
-			var $item = $('li.' + selectClass, ac.dom.$results);
-			if ($item.length == 1) {
-				ac.selectItem($item);				
-			} else {
-				ac.finish();
-			}
-		}
-		
-		ac.selectItem = function($li) {
-			var value = $li.data('value');
-			var data = $li.data('data');
-			var displayValue = ac.displayValue(value, data);
-			lastValueProcessed = displayValue;
-			ac.lastSelectedValue(displayValue);
-			ac.dom.$elem.val(displayValue).focus();
-			ac.setCaret(displayValue.length);
-			ac.callHook('onItemSelect', { value: value, data: data });
-			ac.finish();
-		};
-		
-		ac.lastSelectedValue = function(value) {
-			if (arguments.length > 0) {
-				ac.dom.$elem.data('acLastMatch', value);				
-				return value;
-			}
-			return ac.dom.$elem.data('acLastMatch');			
-		};
-		
-		ac.displayValue = function(value, data) {
-			if ($.isFunction(ac.options.displayValue)) {
-				return ac.options.displayValue(value, data);
-			} else {
-				return value;
-			}			
-		};
-		
-		ac.finish = function() {
-			if (keyTimeout) {
-				clearTimeout(keyTimeout);
-			}
-			if (ac.dom.$elem.val() !== ac.dom.$elem.data('acLastMatch')) {
-				if (ac.options.mustMatch) {
-					ac.dom.$elem.val('');					
-				}
-				ac.callHook('onNoMatch');
-			}
-			ac.dom.$results.hide();
-			lastKeyPressed = false;
-			lastValueProcessed = false;
-			if (active) {
-				ac.callHook('onFinish');
-			}
-			active = false;			
-		};
-		
-		ac.active = function() {
-			return active;
-		};
-		
-		ac.selectRange = function(start, end) {
-			var range, input = ac.dom.$elem[0];
-			if (input.setSelectionRange) {
-				input.focus();
-				input.setSelectionRange(start, end);
-			} else if (this.createTextRange) {
-				range = this.createTextRange();
-				range.collapse(true);
-				range.moveEnd('character', end);
-				range.moveStart('character', start);
-				range.select();
-			}
-		};
-		
-		ac.setCaret = function(pos) {
-			ac.selectRange(pos, pos);
-		};
-				
-		return ac;
-	};
-	$.autocompleter = autocompleter;
-	
-	$.fn.autocomplete = function(options) {
 		return this.each(function() {
-			var autocompleter = $.autocompleter(options);
-			autocompleter.bind(this);
+		    var $this = $(this);
+		    var ac = new $.Autocompleter($this, o);
+		    $this.data('autocompleter', ac);
 		});
+
 	};
-	
+
+    /**
+     * Default options for autocomplete plugin
+     */
 	$.fn.autocomplete.defaults = {
 		minChars: 1,
 		loadingClass: 'acLoading',
@@ -525,7 +621,8 @@
 		sortFunction: false,
 		onItemSelect: false,
 		onNoMatch: false,
-		displayValue: false
+		showListItem: false,
+		showSelectedItem: false
 	};
 	
 })(jQuery);
