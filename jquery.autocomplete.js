@@ -257,10 +257,10 @@
 
     $.Autocompleter.prototype.activateNow = function() {
 		var value = this.dom.$elem.val();
-		if (value !== this.lastProcessedValue && value !== this.lastSelectedValue_) {
+		if (value !== this.lastProcessedValue_ && value !== this.lastSelectedValue_) {
 			if (value.length >= this.options.minChars) {
 				this.active_ = true;
-				this.lastProcessedValue = value;
+				this.lastProcessedValue_ = value;
 				this.fetchData(value);				
 			}							
 		}
@@ -297,6 +297,19 @@
 			}				
 		}
 	};
+
+    $.Autocompleter.prototype.setExtraParam = function(name, value) {
+        var index = $.trim(String(name));
+        if (index) {
+            if (!this.options.extraParams) {
+                this.options.extraParams = {};
+            }
+            if (this.options.extraParams[index] !== value) {
+                this.options.extraParams[index] = value;
+                this.cacheFlush();
+            }
+        }
+    };
 
 	$.Autocompleter.prototype.makeUrl = function(param) {
 	    var self = this;
@@ -418,7 +431,7 @@
 		var numResults = results.length;
 		for (i = 0; i < numResults; i++) {
 			result = results[i];
-			$li = $('<li>' + this.showValue(result.value, result.data) + '</li>');
+			$li = $('<li>' + this.showResult(result.value, result.data) + '</li>');
 			$li.data('value', result.value);
 			$li.data('data', result.data);
 			$li.click(function() {
@@ -451,9 +464,9 @@
 		}
 	};
 	
-	$.Autocompleter.prototype.showValue = function(value, data) {
-		if ($.isFunction(this.options.showValue)) {
-			return this.options.showValue(value, data);
+	$.Autocompleter.prototype.showResult = function(value, data) {
+		if ($.isFunction(this.options.showResult)) {
+			return this.options.showResult(value, data);
 		} else {
 			return value;
 		}			
@@ -529,7 +542,7 @@
 		var value = $li.data('value');
 		var data = $li.data('data');
 		var displayValue = this.displayValue(value, data);
-		this.lastValueProcessed = displayValue;
+		this.lastProcessedValue_ = displayValue;
 		this.lastSelectedValue_ = displayValue;
 		this.dom.$elem.val(displayValue).focus();
 		this.setCaret(displayValue.length);
@@ -549,7 +562,7 @@
 		if (this.keyTimeout_) {
 			clearTimeout(this.keyTimeout_);
 		}
-		if (this.dom.$elem.val() !== this.lastValueSelected) {
+		if (this.dom.$elem.val() !== this.lastSelectedValue_) {
 			if (this.options.mustMatch) {
 				this.dom.$elem.val('');					
 			}
@@ -557,7 +570,7 @@
 		}
 		this.dom.$results.hide();
 		this.lastKeyPressed_ = null;
-		this.lastValueProcessed = null;
+		this.lastProcessedValue_ = null;
 		if (this.active_) {
 			this.callHook('onFinish');
 		}
@@ -620,9 +633,7 @@
 		sortResults: true,
 		sortFunction: false,
 		onItemSelect: false,
-		onNoMatch: false,
-		showListItem: false,
-		showSelectedItem: false
+		onNoMatch: false
 	};
 	
 })(jQuery);
