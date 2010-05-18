@@ -115,7 +115,7 @@
 		}
 
         /**
-         * Create DOM element to hold results, add class, position according to $elem
+         * Create DOM element to hold results
          */
 		this.dom.$results = $('<div></div>').hide();
 		if (this.options.resultsClass) {
@@ -124,8 +124,6 @@
         var offset = this.dom.$elem.offset();
 		this.dom.$results.css({
 			position: 'absolute',
-			top: offset.top + $elem.outerHeight(),
-			left: offset.left
 		});
 		$('body').append(this.dom.$results);
 
@@ -133,6 +131,14 @@
          * Shortcut to self
          */
         var self = this;
+
+        /**
+         * Position results element and reposition on window resize
+         */
+		this.position();
+		$(window).resize(function() {
+		    self.position();
+		});
 
         /**
          * Attach keyboard monitoring to $elem
@@ -181,7 +187,15 @@
 			}
 		});
         
-    }
+    };
+    
+    $.Autocompleter.prototype.position = function() {
+        var offset = this.dom.$elem.offset();
+		this.dom.$results.css({
+			top: offset.top + this.dom.$elem.outerHeight(),
+			left: offset.left
+		});        
+    };
     
 	$.Autocompleter.prototype.cacheRead = function(filter) {
 		var filterLength, searchLength, search, maxPos, pos;
