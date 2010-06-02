@@ -148,7 +148,7 @@
 			switch(self.lastKeyPressed_) {
 
 				case 38: // up
-					e.preventDefault;
+					e.preventDefault();
 					if (self.active_) {
 						self.focusPrev();
 					} else {
@@ -158,7 +158,7 @@
 				break;
 				
 				case 40: // down
-					e.preventDefault;
+					e.preventDefault();
 					if (self.active_) {
 						self.focusNext();
 					} else {
@@ -170,7 +170,7 @@
 				case 9: // tab
 				case 13: // return
 					if (self.active_) {
-						e.preventDefault;
+						e.preventDefault();
 						self.selectCurrent();
 						return false;							
 					}
