@@ -121,9 +121,8 @@
 		if (this.options.resultsClass) {
 			this.dom.$results.addClass(this.options.resultsClass);
 		}
-        var offset = this.dom.$elem.offset();
 		this.dom.$results.css({
-			position: 'absolute',
+			position: 'absolute'
 		});
 		$('body').append(this.dom.$results);
 
