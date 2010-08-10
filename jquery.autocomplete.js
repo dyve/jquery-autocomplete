@@ -40,41 +40,41 @@
     	 * @private
     	 */
         this.keyTimeout_ = null;
-        
+
     	/**
     	 * Last key pressed in the input field (store for behavior)
     	 * @type ?number
     	 * @private
     	 */
         this.lastKeyPressed_ = null;
-        
+
     	/**
     	 * Last value processed by the autocompleter
     	 * @type ?string
     	 * @private
     	 */
         this.lastProcessedValue_ = null;
-        
+
     	/**
     	 * Last value selected by the user
     	 * @type ?string
     	 * @private
     	 */
         this.lastSelectedValue_ = null;
-        
+
     	/**
     	 * Is this autocompleter active?
     	 * @type boolean
     	 * @private
     	 */
         this.active_ = false;
-        
+
     	/**
     	 * Is it OK to finish on blur?
     	 * @type boolean
     	 * @private
     	 */
-        this.finishOnBlur_ = false;
+        this.finishOnBlur_ = true;
 
         /**
          * Assert parameters
@@ -90,7 +90,7 @@
         if (typeof options === 'string') {
             this.options = { url:options };
         } else {
-            this.options = options;            
+            this.options = options;
         }
 		this.options.maxCacheLength = parseInt(this.options.maxCacheLength);
 		if (isNaN(this.options.maxCacheLength) || this.options.maxCacheLength < 1) {
@@ -105,7 +105,7 @@
          * Init DOM elements repository
          */
         this.dom = {};
-        
+
         /**
          * Store the input element we're attached to in the repository, add class
          */
@@ -153,9 +153,9 @@
 					} else {
 						self.activate();
 					}
-					return false;							
+					return false;
 				break;
-				
+
 				case 40: // down
 					e.preventDefault();
 					if (self.active_) {
@@ -163,39 +163,47 @@
 					} else {
 						self.activate();
 					}
-					return false;							
+					return false;
 				break;
-				
+
 				case 9: // tab
 				case 13: // return
 					if (self.active_) {
 						e.preventDefault();
 						self.selectCurrent();
-						return false;							
+						return false;
+					}
+				break;
+
+				case 27: // escape
+					if (self.active_) {
+						e.preventDefault();
+						self.finish();
+						return false;
 					}
 				break;
 
 				default:
 					self.activate();
-					
+
 			}
 		});
 		$elem.blur(function() {
 			if (self.finishOnBlur_) {
-				setTimeout(function() { self.finish(); }, 200);					
+				setTimeout(function() { self.finish(); }, 200);
 			}
 		});
-        
+
     };
-    
+
     $.Autocompleter.prototype.position = function() {
         var offset = this.dom.$elem.offset();
 		this.dom.$results.css({
 			top: offset.top + this.dom.$elem.outerHeight(),
 			left: offset.left
-		});        
+		});
     };
-    
+
 	$.Autocompleter.prototype.cacheRead = function(filter) {
 		var filterLength, searchLength, search, maxPos, pos;
 		if (this.options.useCache) {
@@ -221,7 +229,7 @@
 					pos++;
 				}
 				searchLength++;
-			}				
+			}
 		}
 		return false;
     };
@@ -237,7 +245,7 @@
 			}
 			return this.cacheData_[filter] = data;
 		}
-		return false;	    
+		return false;
     };
 
 	$.Autocompleter.prototype.cacheFlush = function() {
@@ -252,11 +260,11 @@
 		}
 		return false;
 	};
-	
+
 	$.Autocompleter.prototype.activate = function() {
 	    var self = this;
 	    var activateNow = function() {
-	        self.activateNow(); 
+	        self.activateNow();
 	    };
 		var delay = parseInt(this.options.delay);
 		if (isNaN(delay) || delay <= 0) {
@@ -274,40 +282,40 @@
 			if (value.length >= this.options.minChars) {
 				this.active_ = true;
 				this.lastProcessedValue_ = value;
-				this.fetchData(value);				
-			}							
+				this.fetchData(value);
+			}
 		}
-	};		
-	
+	};
+
 	$.Autocompleter.prototype.fetchData = function(value) {
 		if (this.options.data) {
 			this.filterAndShowResults(this.options.data, value);
 		} else {
 		    var self = this;
 			this.fetchRemoteData(value, function(remoteData) {
-				self.filterAndShowResults(remoteData, value);					
+				self.filterAndShowResults(remoteData, value);
 			});
-		}			
+		}
 	};
 
 	$.Autocompleter.prototype.fetchRemoteData = function(filter, callback) {
 		var data = this.cacheRead(filter);
 		if (data) {
-			callback(data);	
+			callback(data);
 		} else {
 			try {
     		    var self = this;
-				this.dom.$elem.addClass(this.options.loadingClass);			        
+				this.dom.$elem.addClass(this.options.loadingClass);
 				$.get(this.makeUrl(filter), function(data) {
 					var parsed = self.parseRemoteData(data);
 					self.cacheWrite(filter, parsed);
 					self.dom.$elem.removeClass(self.options.loadingClass);
 					callback(parsed);
-				});				
+				});
 			} catch(e) {
 				this.dom.$elem.removeClass(this.options.loadingClass);
 				callback(false);
-			}				
+			}
 		}
 	};
 
@@ -338,11 +346,11 @@
 		url += urlAppend.join('&');
 		return url;
 	};
-	
+
 	$.Autocompleter.prototype.makeUrlParam = function(name, value) {
 		return String(name) + '=' + encodeURIComponent(value);
 	}
-	
+
 	$.Autocompleter.prototype.parseRemoteData = function(remoteData) {
 		var results = [];
 		var text = String(remoteData).replace('\r\n', '\n');
@@ -359,17 +367,17 @@
 		}
 		return results;
 	};
-	
+
 	$.Autocompleter.prototype.filterAndShowResults = function(results, filter) {
 		this.showResults(this.filterResults(results, filter), filter);
 	};
-	
+
 	$.Autocompleter.prototype.filterResults = function(results, filter) {
-		
+
 		var filtered = [];
 		var value, data, i, result, type;
 		var regex, pattern, attributes = '';
-		
+
 		for (i = 0; i < results.length; i++) {
 			result = results[i];
 			type = typeof result;
@@ -399,16 +407,16 @@
 				regex = new RegExp(pattern, attributes);
 				if (regex.test(value)) {
 					filtered.push({ value: value, data: data });
-				}					
+				}
 			}
 		}
-		
+
 		if (this.options.sortResults) {
 			return this.sortResults(filtered);
 		}
-		
+
 		return filtered;
-		
+
 	};
 
 	$.Autocompleter.prototype.sortResults = function(results) {
@@ -420,7 +428,7 @@
 		}
 		return results;
 	};
-	
+
 	$.Autocompleter.prototype.sortValueAlpha = function(a, b) {
 		a = String(a.value);
 		b = String(b.value);
@@ -436,7 +444,7 @@
 		}
 		return 0;
 	};
-	
+
 	$.Autocompleter.prototype.showResults = function(results, filter) {
 	    var self = this;
 		var $ul = $('<ul></ul>');
@@ -452,7 +460,7 @@
 				self.selectItem($this);
 			}).mousedown(function() {
 				self.finishOnBlur_ = false;
-			}).mousedown(function() {
+			}).mouseup(function() {
 				self.finishOnBlur_ = true;
 			});
 			$ul.append($li);
@@ -476,15 +484,15 @@
 			this.focusItem($first);
 		}
 	};
-	
+
 	$.Autocompleter.prototype.showResult = function(value, data) {
 		if ($.isFunction(this.options.showResult)) {
 			return this.options.showResult(value, data);
 		} else {
 			return value;
-		}			
+		}
 	};
-	
+
 	$.Autocompleter.prototype.autoFill = function(value, filter) {
 		var lcValue, lcFilter, valueLength, filterLength;
 		if (this.options.autoFill && this.lastKeyPressed_ != 8) {
@@ -500,7 +508,7 @@
 		}
 		return false;
 	};
-	
+
 	$.Autocompleter.prototype.focusNext = function() {
 		this.focusMove(+1);
 	};
@@ -520,7 +528,7 @@
 		}
 		this.focusItem(0);
 	};
-	
+
 	$.Autocompleter.prototype.focusItem = function(item) {
 		var $item, $items = $('li', this.dom.$results);
 		if ($items.length) {
@@ -537,20 +545,20 @@
 				$item = $(item);
 			}
 			if ($item) {
-				$item.addClass(this.selectClass_).addClass(this.options.selectClass);				
-			}				
+				$item.addClass(this.selectClass_).addClass(this.options.selectClass);
+			}
 		}
 	};
-	
+
 	$.Autocompleter.prototype.selectCurrent = function() {
 		var $item = $('li.' + this.selectClass_, this.dom.$results);
 		if ($item.length == 1) {
-			this.selectItem($item);				
+			this.selectItem($item);
 		} else {
 			this.finish();
 		}
 	};
-	
+
 	$.Autocompleter.prototype.selectItem = function($li) {
 		var value = $li.data('value');
 		var data = $li.data('data');
@@ -562,22 +570,22 @@
 		this.callHook('onItemSelect', { value: value, data: data });
 		this.finish();
 	};
-	
+
 	$.Autocompleter.prototype.displayValue = function(value, data) {
 		if ($.isFunction(this.options.displayValue)) {
 			return this.options.displayValue(value, data);
 		} else {
 			return value;
-		}			
+		}
 	};
-	
+
 	$.Autocompleter.prototype.finish = function() {
 		if (this.keyTimeout_) {
 			clearTimeout(this.keyTimeout_);
 		}
 		if (this.dom.$elem.val() !== this.lastSelectedValue_) {
 			if (this.options.mustMatch) {
-				this.dom.$elem.val('');					
+				this.dom.$elem.val('');
 			}
 			this.callHook('onNoMatch');
 		}
@@ -587,9 +595,9 @@
 		if (this.active_) {
 			this.callHook('onFinish');
 		}
-		this.active_ = false;			
+		this.active_ = false;
 	};
-	
+
 	$.Autocompleter.prototype.selectRange = function(start, end) {
 		var input = this.dom.$elem.get(0);
 		if (input.setSelectionRange) {
@@ -603,11 +611,11 @@
 			range.select();
 		}
 	};
-	
+
 	$.Autocompleter.prototype.setCaret = function(pos) {
 		this.selectRange(pos, pos);
 	};
-			
+
     /**
      * autocomplete plugin
      */
@@ -616,7 +624,7 @@
         if (typeof options === 'string') {
             options = { url:options };
         }
-        
+
         var o = $.extend({}, $.fn.autocomplete.defaults, options);
 
 		return this.each(function() {
@@ -648,5 +656,5 @@
 		onItemSelect: false,
 		onNoMatch: false
 	};
-	
+
 })(jQuery);
