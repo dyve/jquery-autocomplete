@@ -303,19 +303,24 @@
 		if (data) {
 			callback(data);
 		} else {
-			try {
-    		    var self = this;
-				this.dom.$elem.addClass(this.options.loadingClass);
-				$.get(this.makeUrl(filter), function(data) {
-					var parsed = self.parseRemoteData(data);
-					self.cacheWrite(filter, parsed);
-					self.dom.$elem.removeClass(self.options.loadingClass);
-					callback(parsed);
-				});
-			} catch(e) {
-				this.dom.$elem.removeClass(this.options.loadingClass);
-				callback(false);
-			}
+		    var self = this;
+			this.dom.$elem.addClass(this.options.loadingClass);
+		    var ajaxCallback = function(data) {
+		        var parsed = false;
+		        if (data !== false) {
+    				parsed = self.parseRemoteData(data);
+    				self.cacheWrite(filter, parsed);
+		        }
+				self.dom.$elem.removeClass(self.options.loadingClass);
+				callback(parsed);
+		    };
+			$.ajax({
+                url: this.makeUrl(filter),
+                success: ajaxCallback,
+				error: function() {
+				    ajaxCallback(false);
+				}
+            });
 		}
 	};
 
@@ -337,13 +342,21 @@
 		var paramName = this.options.paramName || 'q';
 		var url = this.options.url;
 		var params = $.extend({}, this.options.extraParams);
+		// If options.paramName === false, append query to url
+		// instead of using a GET parameter
+		if (this.options.paramName === false) {
+		    url += encodeURIComponent(param);
+		} else {
+    		params[paramName] = param;
+		}
 		var urlAppend = [];
-		params[paramName] = param;
 		$.each(params, function(index, value) {
 			urlAppend.push(self.makeUrlParam(index, value));
 		});
-		url += url.indexOf('?') == -1 ? '?' : '&';
-		url += urlAppend.join('&');
+		if (urlAppend.length) {
+    		url += url.indexOf('?') == -1 ? '?' : '&';
+    		url += urlAppend.join('&');
+		}
 		return url;
 	};
 
@@ -639,6 +652,7 @@
      * Default options for autocomplete plugin
      */
 	$.fn.autocomplete.defaults = {
+	    paramName: 'q',
 		minChars: 1,
 		loadingClass: 'acLoading',
 		resultsClass: 'acResults',

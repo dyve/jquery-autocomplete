@@ -6,7 +6,7 @@
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
 	<script type="text/javascript" src="jquery.autocomplete.js"></script>
 	<script type="text/javascript">
-	
+
 $(function() {
 
 	$("#ac1").autocomplete('search.php');
@@ -35,7 +35,8 @@ $(function() {
 		},
 		showResult: function(value, data) {
 			return '<span style="color:red">' + value + '</span>';
-		}
+		},
+		paramName: false
 	});
 
 });
@@ -45,25 +46,25 @@ $(function() {
 </head>
 
 <body>
-	
+
 	<h1>jQuery autocomplete</h1>
-	
+
 	<p class="info">This demo is built around a list of English bird names. For example, start typing <i>falcon</i> in one of the boxes below.</p>
-	
+
 	<h2>Demo 1</h2>
-	
+
 	<form>
 		<input type="text" id="ac1">
 	</form>
-	
+
 	<p><a href="#" id="flush">Fush the cache</a></p>
 
 	<h2>Demo 2 (sorted on scientific name)</h2>
-	
+
 	<form>
 		<input type="text" id="ac2">
 	</form>
-	
+
 </body>
 
 </html>
