@@ -132,14 +132,6 @@
         var self = this;
 
         /**
-         * Position results element and reposition on window resize
-         */
-		this.position();
-		$(window).resize(function() {
-		    self.position();
-		});
-
-        /**
          * Attach keyboard monitoring to $elem
          */
 		$elem.keydown(function(e) {
@@ -486,6 +478,11 @@
 				$li.addClass(this.options.lastItemClass);
 			}
 		}
+
+		// Alway recalculate position before showing since window size or
+		// input element location may have changed. This fixes #14
+		this.position();
+
 		this.dom.$results.html($ul).show();
 		extraWidth = this.dom.$results.outerWidth() - this.dom.$results.width();
 		this.dom.$results.width(this.dom.$elem.outerWidth() - extraWidth);
@@ -633,13 +630,12 @@
      * autocomplete plugin
      */
     $.fn.autocomplete = function(options) {
-
         if (typeof options === 'string') {
-            options = { url:options };
+            options = {
+                url: options
+            };
         }
-
         var o = $.extend({}, $.fn.autocomplete.defaults, options);
-
 		return this.each(function() {
 		    var $this = $(this);
 		    var ac = new $.Autocompleter($this, o);

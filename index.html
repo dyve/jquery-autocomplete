@@ -35,9 +35,12 @@ $(function() {
 		},
 		showResult: function(value, data) {
 			return '<span style="color:red">' + value + '</span>';
-		},
-		paramName: false
+		}
 	});
+
+    $("#toggle").click(function() {
+    	$("#hide").toggle(); // To test repositioning
+    });
 
 });
 
@@ -51,19 +54,27 @@ $(function() {
 
 	<p class="info">This demo is built around a list of English bird names. For example, start typing <i>falcon</i> in one of the boxes below.</p>
 
+    <fieldset><legend>Debugging &amp; Testing</legend>
+        <p id="hide">HIDE THIS</p>
+    	<p><a href="#" id="flush">Fush the cache</a></p>
+    	<p><a href="#" id="toggle">Toggle hidden block</a></p>
+    </fieldset>
+
 	<h2>Demo 1</h2>
 
 	<form>
 		<input type="text" id="ac1">
 	</form>
 
-	<p><a href="#" id="flush">Fush the cache</a></p>
-
 	<h2>Demo 2 (sorted on scientific name)</h2>
 
 	<form>
 		<input type="text" id="ac2">
 	</form>
+
+    <p style="height: 100px" class="spacer">&nbsp;</p>
+
+    <hr>
 
 </body>
 
