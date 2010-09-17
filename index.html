@@ -35,6 +35,13 @@ $(function() {
 		},
 		showResult: function(value, data) {
 			return '<span style="color:red">' + value + '</span>';
+		},
+		onItemSelect: function(item) {
+		    var text = 'You selected ' + item.value;
+		    if (item.data.length) {
+		        text += ' [' + item.data.join(', ') + ']';
+		    }
+		    alert(text);
 		}
 	});
 
