@@ -37,12 +37,12 @@ $(function() {
 			return '<span style="color:red">' + value + '</span>';
 		},
 		onItemSelect: function(item) {
-		    var text = 'You selected ' + item.value;
+		    var text = 'You selected <b>' + item.value + '</b>';
 		    if (item.data.length) {
-		        text += ' [' + item.data.join(', ') + ']';
+		        text += ' <i>' + item.data.join(', ') + '</i>';
 		    }
-		    alert(text);
-		}
+		    $("#last_selected").html(text);
+		},
 	});
 
     $("#toggle").click(function() {
@@ -78,6 +78,7 @@ $(function() {
 	<form>
 		<input type="text" id="ac2">
 	</form>
+	<p><span id="last_selected"></span></p>
 
     <p style="height: 100px" class="spacer">&nbsp;</p>
 
