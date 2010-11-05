@@ -1,6 +1,6 @@
 /**
  * jquery.autocomplete.js
- * Version 3.1
+ * Version 3.2
  * Copyright (c) Dylan Verheul <dylan.verheul@gmail.com>
  */
 (function($) {
