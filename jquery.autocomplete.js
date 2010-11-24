@@ -397,8 +397,7 @@
 				data = result.data;
 			}
 			value = String(value);
-			// Condition below means we do NOT do empty results
-			if (value) {
+			if (value > '') {
 				if (typeof data !== 'object') {
 					data = {};
 				}
@@ -417,24 +416,32 @@
 		}
 
 		if (this.options.sortResults) {
-			return this.sortResults(filtered);
+			filtered = this.sortResults(filtered, filter);
+		}
+
+		if (this.options.maxItemsToShow > 0 && this.options.maxItemsToShow < filtered.length) {
+			filtered.length = this.options.maxItemsToShow;
 		}
 
 		return filtered;
 
 	};
 
-	$.Autocompleter.prototype.sortResults = function(results) {
+	$.Autocompleter.prototype.sortResults = function(results, filter) {
 	    var self = this;
-		if ($.isFunction(this.options.sortFunction)) {
-			results.sort(this.options.sortFunction);
-		} else {
-			results.sort(function(a, b) { return self.sortValueAlpha(a, b); });
+		var sortFunction = this.options.sortFunction;
+		if (!$.isFunction(sortFunction)) {
+			sortFunction = function(a, b, f) {
+				return self.sortValueAlpha(a, b, f);
+			};
 		}
+		results.sort(function(a, b) {
+			return sortFunction(a, b, filter);
+		});
 		return results;
 	};
 
-	$.Autocompleter.prototype.sortValueAlpha = function(a, b) {
+	$.Autocompleter.prototype.sortValueAlpha = function(a, b, filter) {
 		a = String(a.value);
 		b = String(b.value);
 		if (!this.options.matchCase) {
@@ -664,7 +671,8 @@
 		sortResults: true,
 		sortFunction: false,
 		onItemSelect: false,
-		onNoMatch: false
+		onNoMatch: false,
+		maxItemsToShow: -1
 	};
 
 })(jQuery);

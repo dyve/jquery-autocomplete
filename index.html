@@ -22,13 +22,17 @@ $(function() {
 
 	$("#ac2").autocomplete({
 		url: 'search.php',
-		sortFunction: function(a, b) {
-			a = String(a.data[0]).toLowerCase();
-			b = String(b.data[0]).toLowerCase();
-			if (a > b) {
+		sortFunction: function(a, b, filter) {
+			var f = filter.toLowerCase();
+			var fl = f.length;
+			var a1 = a.value.toLowerCase().substring(0, fl) == f ? '0' : '1';
+			var a1 = a1 + String(a.data[0]).toLowerCase();
+			var b1 = b.value.toLowerCase().substring(0, fl) == f ? '0' : '1';
+			var b1 = b1 + String(b.data[0]).toLowerCase();
+			if (a1 > b1) {
 				return 1;
 			}
-			if (a < b) {
+			if (a1 < b1) {
 				return -1;
 			}
 			return 0;
@@ -43,6 +47,7 @@ $(function() {
 		    }
 		    $("#last_selected").html(text);
 		},
+		maxItemsToShow: 5
 	});
 
     $("#toggle").click(function() {
