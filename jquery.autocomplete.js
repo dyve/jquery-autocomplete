@@ -1,7 +1,8 @@
 /**
  * jquery.autocomplete.js
- * Version 3.2
  * Copyright (c) Dylan Verheul <dylan.verheul@gmail.com>
+ * MIT license
+ * http://code.google.com/p/jquery-autocomplete/
  */
 (function($) {
 
@@ -92,11 +93,11 @@
         } else {
             this.options = options;
         }
-		this.options.maxCacheLength = parseInt(this.options.maxCacheLength);
+		this.options.maxCacheLength = parseInt(this.options.maxCacheLength, 10);
 		if (isNaN(this.options.maxCacheLength) || this.options.maxCacheLength < 1) {
 			this.options.maxCacheLength = 1;
 		}
-		this.options.minChars = parseInt(this.options.minChars);
+		this.options.minChars = parseInt(this.options.minChars, 10);
 		if (isNaN(this.options.minChars) || this.options.minChars < 1) {
 			this.options.minChars = 1;
 		}
@@ -258,7 +259,7 @@
 	    var activateNow = function() {
 	        self.activateNow();
 	    };
-		var delay = parseInt(this.options.delay);
+		var delay = parseInt(this.options.delay, 10);
 		if (isNaN(delay) || delay <= 0) {
 			delay = 250;
 		}
@@ -380,8 +381,9 @@
 	$.Autocompleter.prototype.filterResults = function(results, filter) {
 
 		var filtered = [];
-		var value, data, i, result, type;
+		var value, data, i, result, type, include;
 		var regex, pattern, attributes = '';
+		var specials = new RegExp("[.*+?|()\\[\\]{}\\\\]", "g"); // .*+?|()[]{}\
 
 		for (i = 0; i < results.length; i++) {
 			result = results[i];
@@ -390,8 +392,8 @@
 				value = result;
 				data = {};
 			} else if ($.isArray(result)) {
-				value = result.shift();
-				data = result;
+				value = result[0];
+				data = result.slice(1);
 			} else if (type === 'object') {
 				value = result.value;
 				data = result.data;
@@ -401,16 +403,21 @@
 				if (typeof data !== 'object') {
 					data = {};
 				}
-				pattern = String(filter);
-				if (!this.options.matchInside) {
-					pattern = '^' + pattern;
+				include = !this.options.filterResults;
+				if (!include) {
+    				pattern = String(filter);
+    				pattern = pattern.replace(specials, '\\$&');
+    				if (!this.options.matchInside) {
+    					pattern = '^' + pattern;
+    				}
+    				if (!this.options.matchCase) {
+    					attributes = 'i';
+    				}
+    				regex = new RegExp(pattern, attributes);
+    				include = regex.test(value);
 				}
-				if (!this.options.matchCase) {
-					attributes = 'i';
-				}
-				regex = new RegExp(pattern, attributes);
-				if (regex.test(value)) {
-					filtered.push({ value: value, data: data });
+				if (include) {
+    				filtered.push({ value: value, data: data });
 				}
 			}
 		}
@@ -536,7 +543,7 @@
 
 	$.Autocompleter.prototype.focusMove = function(modifier) {
 		var i, $items = $('li', this.dom.$results);
-		modifier = parseInt(modifier);
+		modifier = parseInt(modifier, 10);
 		for (var i = 0; i < $items.length; i++) {
 			if ($($items[i]).hasClass(this.selectClass_)) {
 				this.focusItem(i + modifier);
@@ -551,7 +558,7 @@
 		if ($items.length) {
 			$items.removeClass(this.selectClass_).removeClass(this.options.selectClass);
 			if (typeof item === 'number') {
-				item = parseInt(item);
+				item = parseInt(item, 10);
 				if (item < 0) {
 					item = 0;
 				} else if (item >= $items.length) {
@@ -668,6 +675,7 @@
 		useCache: true,
 		maxCacheLength: 10,
 		autoFill: false,
+		filterResults: true,
 		sortResults: true,
 		sortFunction: false,
 		onItemSelect: false,

@@ -50,6 +50,10 @@ $(function() {
 		maxItemsToShow: 5
 	});
 
+	$("#ac3").autocomplete({
+		data: [ ['apple', 1], ['apricot', 2], ['pear', 3], ['prume', 4]]
+	});
+
     $("#toggle").click(function() {
     	$("#hide").toggle(); // To test repositioning
     });
@@ -78,12 +82,18 @@ $(function() {
 		<input type="text" id="ac1">
 	</form>
 
-	<h2>Demo 2 (sorted on scientific name)</h2>
+	<h2>Demo 2 (like demo 1, but sorted on scientific name)</h2>
 
 	<form>
 		<input type="text" id="ac2">
 	</form>
 	<p><span id="last_selected"></span></p>
+
+	<h2>Demo 3 (local data)</h2>
+
+	<form>
+		<input type="text" id="ac3">
+	</form>
 
     <p style="height: 100px" class="spacer">&nbsp;</p>
 
