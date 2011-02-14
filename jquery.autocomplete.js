@@ -424,7 +424,7 @@
                         pattern = pattern.toLowerCase();
                         testValue = testValue.toLowerCase();
                     }
-                    include = testValue.indexOf(filter);
+                    include = testValue.indexOf(pattern);
                     if (this.options.matchInside) {
                         include = include > -1;
                     } else {
