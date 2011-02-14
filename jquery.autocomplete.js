@@ -397,7 +397,7 @@
 
         var filtered = [];
         var value, data, i, result, type, include;
-        var regex, pattern, attributes = '';
+        var regex, pattern, testValue;
 
         for (i = 0; i < results.length; i++) {
             result = results[i];
