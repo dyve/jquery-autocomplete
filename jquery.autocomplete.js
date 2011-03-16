@@ -372,6 +372,9 @@
         return String(name) + '=' + encodeURIComponent(value);
     };
 
+    /**
+     * Sanitize CR and LF, then split into lines
+     */
     $.Autocompleter.prototype.splitText = function(text) {
         return String(text).replace(/(\r\n|\r|\n)/g, '\n').split(this.options.lineSeparator);
     };
