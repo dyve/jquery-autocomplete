@@ -370,13 +370,16 @@
 
     $.Autocompleter.prototype.makeUrlParam = function(name, value) {
         return String(name) + '=' + encodeURIComponent(value);
-    }
+    };
+
+    $.Autocompleter.prototype.splitText = function(text) {
+        return String(text).replace(/(\r\n|\r|\n)/g, '\n').split(this.options.lineSeparator);
+    };
 
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
         var value, lines, i, j, data;
         var results = [];
-        var text = String(remoteData).replace('\r\n', '\n');
-        var lines = text.split(this.options.lineSeparator);
+        var lines = this.splitText(remoteData);
         for (i = 0; i < lines.length; i++) {
             line = lines[i].split(this.options.cellSeparator);
             data = [];
