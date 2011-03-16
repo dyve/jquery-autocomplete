@@ -8,6 +8,22 @@ if (!$q) {
     return;
 }
 
+$line_separator = '';
+if (isset($_GET['lsep'])) {
+    $line_separator = strtolower($_GET['lsep']);
+}
+if (!$line_separator) {
+    $line_separator = "\n";
+}
+
+$cell_separator = '';
+if (isset($_GET['csep'])) {
+    $cell_separator = strtolower($_GET['csep']);
+}
+if (!$cell_separator) {
+    $cell_separator = "|";
+}
+
 $items = array(
     "Great Bittern" => "Botaurus stellaris",
     "Little Grebe" => "Tachybaptus ruficollis",
@@ -576,7 +592,7 @@ $items = array(
 );
 
 foreach ($items as $key => $value) {
-	if (strpos(strtolower($key), $q) !== false) {
-		echo "$key|$value\n";
-	}
+    if (strpos(strtolower($key), $q) !== false) {
+        echo $key . $cell_separator . $value . $line_separator;
+    }
 }

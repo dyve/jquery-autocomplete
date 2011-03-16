@@ -22,7 +22,9 @@ $(function() {
     });
 
     $("#ac2").autocomplete({
-        url: 'search.php',
+        lineSeparator: '^',
+        cellSeparator: '$',
+        url: 'search.php?lsep=^&csep=$',
         sortFunction: function(a, b, filter) {
             var f = filter.toLowerCase();
             var fl = f.length;

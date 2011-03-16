@@ -373,10 +373,10 @@
     }
 
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
+        var value, lines, i, j, data;
         var results = [];
-        var text = String(remoteData).replace('\r\n', this.options.lineSeparator);
-        var i, j, data, line, lines = text.split(this.options.lineSeparator);
-        var value;
+        var text = String(remoteData).replace('\r\n', '\n');
+        var lines = text.split(this.options.lineSeparator);
         for (i = 0; i < lines.length; i++) {
             line = lines[i].split(this.options.cellSeparator);
             data = [];
