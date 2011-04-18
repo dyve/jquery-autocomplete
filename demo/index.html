@@ -2,10 +2,10 @@
 <html>
 
 <head>
-    <title>jQuery autocompleter</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>jQuery autocompleter</title>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.autocomplete.js"></script>
+    <script type="text/javascript" src="../src/jquery.autocomplete.js"></script>
     <script type="text/javascript">
 
 $(function() {
@@ -22,9 +22,7 @@ $(function() {
     });
 
     $("#ac2").autocomplete({
-        lineSeparator: '^',
-        cellSeparator: '$',
-        url: 'search.php?lsep=^&csep=$',
+        url: 'search.php',
         sortFunction: function(a, b, filter) {
             var f = filter.toLowerCase();
             var fl = f.length;
@@ -50,11 +48,18 @@ $(function() {
             }
             $("#last_selected").html(text);
         },
+        mustMatch: true,
         maxItemsToShow: 5
     });
 
     $("#ac3").autocomplete({
-        data: [ ['apple', 1], ['apricot', 2], ['pear', 3], ['prume', 4]]
+        data: [
+            ['apple', 1],
+            ['apricot', 2],
+            ['pear', 3],
+            ['prume', 4],
+            ['Doyenné du Comice', 5]
+        ]
     });
 
     $("#toggle").click(function() {
@@ -64,7 +69,7 @@ $(function() {
 });
 
     </script>
-    <link rel="stylesheet" type="text/css" href="jquery.autocomplete.css">
+    <link rel="stylesheet" type="text/css" href="../src/jquery.autocomplete.css">
 </head>
 
 <body>
@@ -93,6 +98,8 @@ $(function() {
     <p><span id="last_selected"></span></p>
 
     <h2>Demo 3 (local data)</h2>
+
+    <p>Local data contains <i>apricot, apple, pear, prume, Doyenné du Comice</i>.</p>
 
     <form>
         <input type="text" id="ac3">

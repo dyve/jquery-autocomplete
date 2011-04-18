@@ -1,9 +1,11 @@
-/**
+/*!
+ * jQuery Autocompleter
  * jquery.autocomplete.js
- * Copyright (c) Dylan Verheul <dylan.verheul@gmail.com>
- * MIT license
  * http://code.google.com/p/jquery-autocomplete/
+ * Copyright 2011, Dylan Verheul
+ * Licensed under the MIT license
  */
+
 (function($) {
 
     /**
@@ -65,6 +67,7 @@
 
         /**
          * Is this autocompleter active?
+         * Set by showResults() if we have results to show
          * @type boolean
          * @private
          */
@@ -158,7 +161,6 @@
                         self.activate();
                     }
                     return false;
-                break;
 
                 case 40: // down
                     e.preventDefault();
@@ -168,14 +170,24 @@
                         self.activate();
                     }
                     return false;
-                break;
 
                 case 9: // tab
+                    if (self.active_) {
+                        self.selectCurrent();
+                        if (self.options.preventDefaultTab) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }
+                break;
+
                 case 13: // return
                     if (self.active_) {
-                        e.preventDefault();
                         self.selectCurrent();
-                        return false;
+                        if (self.options.preventDefaultReturn) {
+                            e.preventDefault();
+                            return false;
+                        }
                     }
                 break;
 
@@ -247,7 +259,8 @@
             if (this.cacheData_[filter] !== undefined) {
                 this.cacheLength_++;
             }
-            return this.cacheData_[filter] = data;
+            this.cacheData_[filter] = data;
+            return this.cacheData_[filter];
         }
         return false;
     };
@@ -284,7 +297,6 @@
         var value = this.dom.$elem.val();
         if (value !== this.lastProcessedValue_ && value !== this.lastSelectedValue_) {
             if (value.length >= this.options.minChars) {
-                this.active_ = true;
                 this.lastProcessedValue_ = value;
                 this.fetchData(value);
             }
@@ -362,7 +374,7 @@
             urlAppend.push(self.makeUrlParam(index, value));
         });
         if (urlAppend.length) {
-            url += url.indexOf('?') == -1 ? '?' : '&';
+            url += url.indexOf('?') === -1 ? '?' : '&';
             url += urlAppend.join('&');
         }
         return url;
@@ -372,17 +384,11 @@
         return String(name) + '=' + encodeURIComponent(value);
     };
 
-    /**
-     * Sanitize CR and LF, then split into lines
-     */
-    $.Autocompleter.prototype.splitText = function(text) {
-        return String(text).replace(/(\r\n|\r|\n)/g, '\n').split(this.options.lineSeparator);
-    };
-
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
-        var value, lines, i, j, data;
         var results = [];
-        var lines = this.splitText(remoteData);
+        var text = String(remoteData).replace('\r\n', this.options.lineSeparator);
+        var i, j, data, line, lines = text.split(this.options.lineSeparator);
+        var value;
         for (i = 0; i < lines.length; i++) {
             line = lines[i].split(this.options.cellSeparator);
             data = [];
@@ -403,7 +409,7 @@
 
         var filtered = [];
         var value, data, i, result, type, include;
-        var regex, pattern, testValue;
+        var regex, pattern, foldedPattern, testValue;
 
         for (i = 0; i < results.length; i++) {
             result = results[i];
@@ -488,10 +494,13 @@
     };
 
     $.Autocompleter.prototype.showResults = function(results, filter) {
+        var numResults = results.length;
+        if (numResults === 0) {
+            return this.finish();
+        }
         var self = this;
         var $ul = $('<ul></ul>');
         var i, result, $li, extraWidth, first = false, $first = false;
-        var numResults = results.length;
         for (i = 0; i < numResults; i++) {
             result = results[i];
             $li = $('<li>' + this.showResult(result.value, result.data) + '</li>');
@@ -511,13 +520,13 @@
                 $first = $li;
                 $li.addClass(this.options.firstItemClass);
             }
-            if (i == numResults - 1) {
+            if (i === numResults - 1) {
                 $li.addClass(this.options.lastItemClass);
             }
         }
 
         // Alway recalculate position before showing since window size or
-        // input element location may have changed. This fixes #14
+        // input element location may have changed.
         this.position();
 
         this.dom.$results.html($ul).show();
@@ -530,6 +539,7 @@
         if (this.autoFill(first, filter)) {
             this.focusItem($first);
         }
+        this.active_ = true;
     };
 
     $.Autocompleter.prototype.showResult = function(value, data) {
@@ -542,7 +552,7 @@
 
     $.Autocompleter.prototype.autoFill = function(value, filter) {
         var lcValue, lcFilter, valueLength, filterLength;
-        if (this.options.autoFill && this.lastKeyPressed_ != 8) {
+        if (this.options.autoFill && this.lastKeyPressed_ !== 8) {
             lcValue = String(value).toLowerCase();
             lcFilter = String(filter).toLowerCase();
             valueLength = value.length;
@@ -565,7 +575,7 @@
     };
 
     $.Autocompleter.prototype.focusMove = function(modifier) {
-        var i, $items = $('li', this.dom.$results);
+        var $items = $('li', this.dom.$results);
         modifier = parseInt(modifier, 10);
         for (var i = 0; i < $items.length; i++) {
             if ($($items[i]).hasClass(this.selectClass_)) {
@@ -599,7 +609,7 @@
 
     $.Autocompleter.prototype.selectCurrent = function() {
         var $item = $('li.' + this.selectClass_, this.dom.$results);
-        if ($item.length == 1) {
+        if ($item.length === 1) {
             this.selectItem($item);
         } else {
             this.finish();
@@ -664,7 +674,7 @@
     };
 
     /**
-     * autocomplete plugin
+     * jQuery autocomplete plugin
      */
     $.fn.autocomplete = function(options) {
         if (typeof options === 'string') {
@@ -706,14 +716,16 @@
         mustMatch: false,
         selectFirst: false,
         selectOnly: false,
-        formatItem: null,           // TBD
-        onItemSelect: false,
-
+        showResult: null,
+        preventDefaultReturn: true,
+        preventDefaultTab: false,
+        onItemSelect: null,
         autoFill: false,
         filterResults: true,
         sortResults: true,
-        sortFunction: false,
-        onNoMatch: false
+        sortFunction: null,
+        onNoMatch: null,
+        onFinish: null
 
     };
 

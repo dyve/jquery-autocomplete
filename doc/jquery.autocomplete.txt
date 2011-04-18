@@ -15,11 +15,10 @@ Demo page (search for English bird names, type "com" for example) :
 http://www.dyve.net/jquery?autocomplete
 
 
-Advice :
+Restriction :
 ========
 
-Make sure that selector selects only one element, unless you really, really know what you are
-doing.
+Selector should select one input element. Anything else will cause Autocomplete to exit with an error message.
 
 
 Example :
@@ -28,14 +27,10 @@ Example :
 $("#input_box").autocomplete("my_autocomplete_backend.php");
 
 In the above example, Autocomplete expects an input element with the id "input_box" to exist.
-When a user starts typing in the input box, the autocompleter will request
-my_autocomplete_backend.php
-with a GET parameter named q that contains the current value of the input box. Let's assume
-that the user has typed "foo"(without quotes). Autocomplete will then request
-my_autocomplete_backend.php?q=foo.
 
-The backend should output possible values for the autocompleter, each on a single line. Output
-cannot contain the pipe symbol "|", since that is considered a separator (more on that later).
+When a user starts typing in the input box, the autocompleter will request my_autocomplete_backend.php with a GET parameter named q that contains the current value of the input box. Let's assume that the user has typed "foo"(without quotes). Autocomplete will then request my_autocomplete_backend.php?q=foo.
+
+The backend should output possible values for the autocompleter, each on a single line. Output cannot contain the pipe symbol "|", since that is considered a separator (more on that later).
 
 An appropiate simple output would be:
 
@@ -54,6 +49,7 @@ Advanced options :
 ==================
 
 You can pass advanced options as a JavaScript object, notation { name:value, ..., name: value }
+
 Example: $("#input_box").autocomplete("my_autocomplete_backend.php", { minChars:3 });
 
 These options are available:
@@ -61,11 +57,11 @@ These options are available:
 inputClass (default value: "acInput")
 	This class will be added to the input box.
 
-resultsClass (default value: "acResults")
-	The class for the UL that will contain the result items (result items are LI elements).
-
 loadingClass = (default value: "acLoading")
 	The class for the input box while results are being fetched from the server.
+
+resultsClass (default value: "acResults")
+	The class for the UL that will contain the result items (result items are LI elements).
 
 selectClass = (default value: "acSelect")
 	The class for the input box while results are being fetched from the server.
@@ -132,29 +128,46 @@ selectOnly (default value: false)
 	it will be selected even if it has not been handpicked by keyboard or mouse action. This
 	overrides selectFirst.
 
-formatItem (default value: none)
-	A JavaScript funcion that can provide advanced markup for an item. For each row of results,
+showResult (default value: null)
+	A JavaScript function that can provide advanced markup for an item. For each row of results,
 	this function will be called. The returned value will be displayed inside an LI element in the
-	results list. Autocompleter will provide 3 parameters: the results row, the position of the row
-	in the list of results, and the number of items in the list of results. See the source code of
-	http://www.dyve.net/jquery?autocomplete for an example.
+	results list. Autocompleter will provide the value and the data.
 
-onItemSelect (default value: false)
-	A JavaScript funcion that will be called when an item is selected. The autocompleter will
+onItemSelect (default value: null)
+	A JavaScript function that will be called when an item is selected. The autocompleter will
 	specify a single argument, being the LI element selected. This LI element will have an
 	attribute "extra" that contains an array of all cells that the backend specified. See the
 	source code of http://www.dyve.net/jquery?autocomplete for an example.
 
-
 autoFill (default value: false)
+	If this is set to true, the autocompleter will automatically fill the search box with the
+	first entry in the results.
 
 filterResults (default value: true)
+	If this is set to true, the autocompleter will filter the results presented by the server,
+	selecting only those that begin with the user input.
 
 sortResults (default value: true)
+	If this is set to true, the autocompleter will sort the results presented in alphanumeric
+	order, see sortFunction for custom sort.
 
-sortFunction (default value: true)
+sortFunction (default value: null)
+	Use this sort function to sort results if set instead of the built-in alphanumeric sort
+	function. Sorting will only happen if sortResults is set to true.
 
-onNoMatch  (default value: false)
+onNoMatch  (default value: null)
+	A JavaScript function that will be called if there are no matches.
+
+onFinish  (default value: null)
+	A JavaScript function that will be called when finishing the autocompleter
+	(only called if active).
+
+preventDefaultReturn  (default value: true)
+	Whether or not to prevent the default behavior of the Return key when this is used to select an item. Return will usually submit the form.
+
+preventDefaultTab  (default value: false)
+	Whether or not to prevent the default behavior of the Tab key when this is used to select an item. Tab will usually jump to the next input field of the form.
+
 
 
 
