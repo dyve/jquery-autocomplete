@@ -119,9 +119,8 @@ mustMatch (default value: false)
 	of this documentation, typing "footer" would result in an empty input box.
 
 selectFirst (default value: false)
-	If this is set to true, the first autocomplete value will be automatically selected on
-	tab/return, even if it has not been handpicked by keyboard or mouse action. If there is a
-	handpicked (highlighted) result, that result will take precedence.
+	If this is set to true, the first autocomplete value will be automatically selected, and
+	highlighted.
 
 selectOnly (default value: false)
 	If this is set to true, and there is only one autocomplete when the user hits tab/return,

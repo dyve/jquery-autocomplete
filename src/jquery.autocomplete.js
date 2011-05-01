@@ -536,7 +536,7 @@
             function() { self.focusItem(this); },
             function() { /* void */ }
         );
-        if (this.autoFill(first, filter)) {
+        if (this.autoFill(first, filter) || this.options.selectFirst || (this.options.selectOnly && numResults == 1)) {
             this.focusItem($first);
         }
         this.active_ = true;
