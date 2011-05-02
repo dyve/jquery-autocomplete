@@ -212,6 +212,9 @@
 
     };
 
+    /**
+     * Position output DOM elements
+     */
     $.Autocompleter.prototype.position = function() {
         var offset = this.dom.$elem.offset();
         this.dom.$results.css({
@@ -220,6 +223,9 @@
         });
     };
 
+    /**
+     * Read from cache
+     */
     $.Autocompleter.prototype.cacheRead = function(filter) {
         var filterLength, searchLength, search, maxPos, pos;
         if (this.options.useCache) {
@@ -250,6 +256,9 @@
         return false;
     };
 
+    /**
+     * Write to cache
+     */
     $.Autocompleter.prototype.cacheWrite = function(filter, data) {
         if (this.options.useCache) {
             if (this.cacheLength_ >= this.options.maxCacheLength) {
@@ -265,11 +274,17 @@
         return false;
     };
 
+    /**
+     * Flush cache
+     */
     $.Autocompleter.prototype.cacheFlush = function() {
         this.cacheData_ = {};
         this.cacheLength_ = 0;
     };
 
+    /**
+     * Call hook
+     */
     $.Autocompleter.prototype.callHook = function(hook, data) {
         var f = this.options[hook];
         if (f && $.isFunction(f)) {
@@ -278,6 +293,9 @@
         return false;
     };
 
+    /**
+     * Set timeout to activate autocompleter
+     */
     $.Autocompleter.prototype.activate = function() {
         var self = this;
         var activateNow = function() {
@@ -293,6 +311,9 @@
         this.keyTimeout_ = setTimeout(activateNow, delay);
     };
 
+    /**
+     * Activate autocompleter immediately
+     */
     $.Autocompleter.prototype.activateNow = function() {
         var value = this.dom.$elem.val();
         if (value !== this.lastProcessedValue_ && value !== this.lastSelectedValue_) {
@@ -303,6 +324,9 @@
         }
     };
 
+    /**
+     * Get autocomplete data for a given value
+     */
     $.Autocompleter.prototype.fetchData = function(value) {
         if (this.options.data) {
             this.filterAndShowResults(this.options.data, value);
@@ -314,6 +338,9 @@
         }
     };
 
+    /**
+     * Get remote autocomplete data for a given value
+     */
     $.Autocompleter.prototype.fetchRemoteData = function(filter, callback) {
         var data = this.cacheRead(filter);
         if (data) {
@@ -340,6 +367,9 @@
         }
     };
 
+    /**
+     * Create or update an extra parameter for the remote request
+     */
     $.Autocompleter.prototype.setExtraParam = function(name, value) {
         var index = $.trim(String(name));
         if (index) {
@@ -353,6 +383,9 @@
         }
     };
 
+    /**
+     * Build the url for a remote request
+     */
     $.Autocompleter.prototype.makeUrl = function(param) {
         var self = this;
         var url = this.options.url;
@@ -380,11 +413,28 @@
         return url;
     };
 
+    /**
+     * Create partial url for a name/value pair
+     */
     $.Autocompleter.prototype.makeUrlParam = function(name, value) {
         return [name, encodeURIComponent(value)].join('=');
     };
 
+    /**
+     * Parse data received from server
+     */
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
+        var remoteDataType = this.options.remoteDataType;
+        if (remoteDataType == 'json') {
+            return this.parseRemoteJSON(remoteData);
+        }
+        return this.parseRemoteText(remoteData);
+    };
+
+    /**
+     * Parse data received in text format
+     */
+    $.Autocompleter.prototype.parseRemoteText = function(remoteData) {
         var results = [];
         var text = String(remoteData).replace('\r\n', this.options.lineSeparator);
         var i, j, data, line, lines = text.split(this.options.lineSeparator);
@@ -399,6 +449,13 @@
             results.push({ value: unescape(value), data: data });
         }
         return results;
+    };
+
+    /**
+     * Parse data received in JSON format
+     */
+    $.Autocompleter.prototype.parseRemoteJSON = function(remoteData) {
+        return $.parseJSON(remoteData);
     };
 
     $.Autocompleter.prototype.filterAndShowResults = function(results, filter) {
@@ -711,6 +768,7 @@
         queryParamName: 'q',
         limitParamName: 'limit',
         extraParams: {},
+        remotedataType: false,
         lineSeparator: '\n',
         cellSeparator: '|',
         minChars: 2,

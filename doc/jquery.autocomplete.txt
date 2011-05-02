@@ -78,6 +78,9 @@ extraParams (default value: {})
 	Extra parameters for the backend. If you were to specify { bar:4 }, the autocompleter would
 	call my_autocomplete_backend.php?q=foo&bar=4 (assuming the input box contains "foo").
 
+remoteDataType  (default value: false)
+    If this is set to 'json', the autocompleter expects a JSON array from the server. Any other settings, it defaults to the native text format using lineSeparator and Cellseparator (see below).
+
 lineSeparator = (default value: "\n")
 	The character that separates lines in the results from the backend.
 
@@ -166,8 +169,6 @@ preventDefaultReturn  (default value: true)
 
 preventDefaultTab  (default value: false)
 	Whether or not to prevent the default behavior of the Tab key when this is used to select an item. Tab will usually jump to the next input field of the form.
-
-
 
 
 More advanced options :
