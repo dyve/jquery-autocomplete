@@ -381,7 +381,7 @@
     };
 
     $.Autocompleter.prototype.makeUrlParam = function(name, value) {
-        return String(name) + '=' + encodeURIComponent(value);
+        return [name, encodeURIComponent(value)].join('=');
     };
 
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
@@ -430,8 +430,8 @@
                     data = {};
                 }
                 if (this.options.filterResults) {
-                    pattern = String(filter);
-                    testValue = String(value);
+                    pattern = this.matchStringConvertor(filter);
+                    testValue = this.matchStringConvertor(value);
                     if (!this.options.matchCase) {
                         pattern = pattern.toLowerCase();
                         testValue = testValue.toLowerCase();
@@ -491,6 +491,14 @@
             return -1;
         }
         return 0;
+    };
+
+    $.Autocompleter.prototype.matchStringConvertor = function(s, a, b) {
+        var convertor = this.options.matchStringConvertor;
+        if ($.isFunction(convertor)) {
+            s = convertor(s, a, b);
+        }
+        return s;
     };
 
     $.Autocompleter.prototype.showResults = function(results, filter) {
@@ -719,14 +727,14 @@
         showResult: null,
         preventDefaultReturn: true,
         preventDefaultTab: false,
-        onItemSelect: null,
         autoFill: false,
         filterResults: true,
         sortResults: true,
         sortFunction: null,
+        onItemSelect: null,
         onNoMatch: null,
-        onFinish: null
-
+        onFinish: null,
+        matchStringConvertor: null
     };
 
 })(jQuery);
