@@ -362,7 +362,8 @@
                 success: ajaxCallback,
                 error: function() {
                     ajaxCallback(false);
-                }
+                },
+                dataType: 'text'
             });
         }
     };
@@ -768,7 +769,7 @@
         queryParamName: 'q',
         limitParamName: 'limit',
         extraParams: {},
-        remotedataType: false,
+        remoteDataType: false,
         lineSeparator: '\n',
         cellSeparator: '|',
         minChars: 2,

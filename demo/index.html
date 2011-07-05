@@ -66,6 +66,12 @@ $(function() {
         ]
     });
 
+    $("#ac4").autocomplete({
+        url: 'search.php',
+        useCache: false,
+        filterResults: false
+    });
+
     $("#toggle").click(function() {
         $("#hide").toggle(); // To test repositioning
     });
@@ -107,6 +113,14 @@ $(function() {
 
     <form>
         <input type="text" id="ac3">
+    </form>
+
+    <h2>Demo 4 (remote data without cache)</h2>
+
+    <p class="info">This demo is built around a list of English bird names. For example, start typing <i>falcon</i> in one of the boxes below.</p>
+
+    <form>
+        <input type="text" id="ac4">
     </form>
 
     <p style="height: 100px" class="spacer">&nbsp;</p>
