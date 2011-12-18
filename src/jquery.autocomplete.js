@@ -467,7 +467,7 @@
 
         var filtered = [];
         var value, data, i, result, type, include;
-        var regex, pattern, foldedPattern, testValue;
+        var pattern, testValue;
 
         for (i = 0; i < results.length; i++) {
             result = results[i];
@@ -575,6 +575,20 @@
         this.finishOnBlur_ = false;
     };
 
+    $.Autocompleter.prototype.createItemFromResult = function(result) {
+        var self = this;
+        var $li = $('<li>' + this.showResult(result.value, result.data) + '</li>');
+        $li.data('value', result.value);
+        $li.data('data', result.data);
+        $li.click(function() {
+              self.selectItem($li);
+           })
+           .mousedown(self.disableFinishOnBlur)
+           .mouseup(self.enableFinishOnBlur)
+        ;
+        return $li;
+    };
+
     $.Autocompleter.prototype.showResults = function(results, filter) {
         var numResults = results.length;
         if (numResults === 0) {
@@ -582,18 +596,10 @@
         }
         var self = this;
         var $ul = $('<ul></ul>');
-        var i, result, $li, extraWidth, first = false, $first = false;
+        var i, result, $li, autoWidth, first = false, $first = false;
         for (i = 0; i < numResults; i++) {
             result = results[i];
-            $li = $('<li>' + this.showResult(result.value, result.data) + '</li>');
-            $li.data('value', result.value);
-            $li.data('data', result.data);
-            $li.click(function() {
-                var $this = $(this);
-                self.selectItem($this);
-            })
-            .mousedown(self.disableFinishOnBlur)
-            .mouseup(self.enableFinishOnBlur);
+            $li = this.createItemFromResult(result);
             $ul.append($li);
             if (first === false) {
                 first = String(result.value);
@@ -605,13 +611,15 @@
             }
         }
 
-        // Alway recalculate position before showing since window size or
+        // Always recalculate position before showing since window size or
         // input element location may have changed.
         this.position();
 
         this.dom.$results.html($ul).show();
-        extraWidth = this.dom.$results.outerWidth() - this.dom.$results.width();
-        this.dom.$results.width(this.dom.$elem.outerWidth() - extraWidth);
+        if (this.options.autoWidth) {
+            autoWidth = this.dom.$elem.outerWidth() - this.dom.$results.outerWidth() + this.dom.$results.width();
+            this.dom.$results.css(this.options.autoWidth, autoWidth);
+        }
         $('li', this.dom.$results).hover(
             function() { self.focusItem(this); },
             function() { /* void */ }
@@ -769,7 +777,6 @@
             var ac = new $.Autocompleter($this, o);
             $this.data('autocompleter', ac);
         });
-
     };
 
     /**
@@ -809,7 +816,8 @@
         onNoMatch: null,
         onFinish: null,
         matchStringConverter: null,
-        beforeUseConverter: null
+        beforeUseConverter: null,
+        autoWidth: 'min-width'
     };
 
 })(jQuery);

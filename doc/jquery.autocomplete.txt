@@ -177,6 +177,11 @@ matchStringConverter  (default value: null)
 beforeUseConverter  (default value: null)
     A JavaScript function which is used to convert the input value before sending it to the backend.
 
+autoWidth  (default value: "min-width")
+    The CSS property to set the width of the results list to. Leave empty to stop jquery-autocomplete
+    from interfering with your results width. Other sensible values are "min-width" (default) and
+    "width".
+
 More advanced options :
 =======================
 
