@@ -5,8 +5,8 @@
  * Copyright 2011, Dylan Verheul
  * Licensed under the MIT license
  */
-
 (function($) {
+    "use strict";
 
     /**
      * Autocompleter Object
@@ -84,8 +84,8 @@
          * Assert parameters
          */
         if (!$elem || !($elem instanceof jQuery) || $elem.length !== 1 || $elem.get(0).tagName.toUpperCase() !== 'INPUT') {
-            alert('Invalid parameter for jquery.Autocompleter, jQuery object with one element with INPUT tag expected');
-            return;
+            window.alert('Invalid parameter for jquery.Autocompleter, jQuery object with one element with INPUT tag expected');
+            return false;
         }
 
         /**
@@ -315,7 +315,7 @@
      * Activate autocompleter immediately
      */
     $.Autocompleter.prototype.activateNow = function() {
-        var value = this.dom.$elem.val();
+        var value = this.beforeUseConverter(this.dom.$elem.val());
         if (value !== this.lastProcessedValue_ && value !== this.lastSelectedValue_) {
             if (value.length >= this.options.minChars) {
                 this.lastProcessedValue_ = value;
@@ -426,7 +426,7 @@
      */
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
         var remoteDataType = this.options.remoteDataType;
-        if (remoteDataType == 'json') {
+        if (remoteDataType === 'json') {
             return this.parseRemoteJSON(remoteData);
         }
         return this.parseRemoteText(remoteData);
@@ -444,10 +444,10 @@
             line = lines[i].split(this.options.cellSeparator);
             data = [];
             for (j = 0; j < line.length; j++) {
-                data.push(unescape(line[j]));
+                data.push(decodeURIComponent(line[j]));
             }
             value = data.shift();
-            results.push({ value: unescape(value), data: data });
+            results.push({ value: value, data: data });
         }
         return results;
     };
@@ -488,8 +488,8 @@
                     data = {};
                 }
                 if (this.options.filterResults) {
-                    pattern = this.matchStringConvertor(filter);
-                    testValue = this.matchStringConvertor(value);
+                    pattern = this.matchStringConverter(filter);
+                    testValue = this.matchStringConverter(value);
                     if (!this.options.matchCase) {
                         pattern = pattern.toLowerCase();
                         testValue = testValue.toLowerCase();
@@ -551,12 +551,28 @@
         return 0;
     };
 
-    $.Autocompleter.prototype.matchStringConvertor = function(s, a, b) {
-        var convertor = this.options.matchStringConvertor;
-        if ($.isFunction(convertor)) {
-            s = convertor(s, a, b);
+    $.Autocompleter.prototype.matchStringConverter = function(s, a, b) {
+        var converter = this.options.matchStringConverter;
+        if ($.isFunction(converter)) {
+            s = converter(s, a, b);
         }
         return s;
+    };
+
+    $.Autocompleter.prototype.beforeUseConverter = function(s, a, b) {
+        var converter = this.options.beforeUseConverter;
+        if ($.isFunction(converter)) {
+            s = converter(s, a, b);
+        }
+        return s;
+    };
+
+    $.Autocompleter.prototype.enableFinishOnBlur = function() {
+        this.finishOnBlur_ = true;
+    };
+
+    $.Autocompleter.prototype.disableFinishOnBlur = function() {
+        this.finishOnBlur_ = false;
     };
 
     $.Autocompleter.prototype.showResults = function(results, filter) {
@@ -575,11 +591,9 @@
             $li.click(function() {
                 var $this = $(this);
                 self.selectItem($this);
-            }).mousedown(function() {
-                self.finishOnBlur_ = false;
-            }).mouseup(function() {
-                self.finishOnBlur_ = true;
-            });
+            })
+            .mousedown(self.disableFinishOnBlur)
+            .mouseup(self.enableFinishOnBlur);
             $ul.append($li);
             if (first === false) {
                 first = String(result.value);
@@ -602,7 +616,7 @@
             function() { self.focusItem(this); },
             function() { /* void */ }
         );
-        if (this.autoFill(first, filter) || this.options.selectFirst || (this.options.selectOnly && numResults == 1)) {
+        if (this.autoFill(first, filter) || this.options.selectFirst || (this.options.selectOnly && numResults === 1)) {
             this.focusItem($first);
         }
         this.active_ = true;
@@ -686,8 +700,9 @@
         var value = $li.data('value');
         var data = $li.data('data');
         var displayValue = this.displayValue(value, data);
-        this.lastProcessedValue_ = displayValue;
-        this.lastSelectedValue_ = displayValue;
+        var processedDisplayValue = this.beforeUseConverter(displayValue);
+        this.lastProcessedValue_ = processedDisplayValue;
+        this.lastSelectedValue_ = processedDisplayValue;
         this.dom.$elem.val(displayValue).focus();
         this.setCaret(displayValue.length);
         this.callHook('onItemSelect', { value: value, data: data });
@@ -706,7 +721,7 @@
         if (this.keyTimeout_) {
             clearTimeout(this.keyTimeout_);
         }
-        if (this.dom.$elem.val() !== this.lastSelectedValue_) {
+        if (this.beforeUseConverter(this.dom.$elem.val()) !== this.lastSelectedValue_) {
             if (this.options.mustMatch) {
                 this.dom.$elem.val('');
             }
@@ -793,7 +808,8 @@
         onItemSelect: null,
         onNoMatch: null,
         onFinish: null,
-        matchStringConvertor: null
+        matchStringConverter: null,
+        beforeUseConverter: null
     };
 
 })(jQuery);

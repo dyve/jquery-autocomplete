@@ -4,13 +4,14 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>jQuery autocompleter</title>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../src/jquery.autocomplete.css">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
     <script type="text/javascript" src="../src/jquery.autocomplete.js"></script>
     <script type="text/javascript">
 
 $(function() {
 
-    $("#ac1").autocomplete('search.php');
+    $("#ac1").autocomplete('search.php', {minChars:5});
 
     $("#flush").click(function() {
         var ac = $("#ac1").data('autocompleter');
@@ -79,7 +80,6 @@ $(function() {
 });
 
     </script>
-    <link rel="stylesheet" type="text/css" href="../src/jquery.autocomplete.css">
 </head>
 
 <body>
