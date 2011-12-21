@@ -1,0 +1,15 @@
+#!/bin/bash
+
+COMPILER="/Applications/Developer Tools/compiler.jar"
+SOURCE=./src/jquery.autocomplete.js
+TARGET=./src/jquery.autocomplete.min.js
+
+echo "Minifying ${SOURCE} to ${TARGET} ... "
+
+if `java -jar "${COMPILER}" "${SOURCE}" > "${TARGET}"`
+then
+    echo "Minify succeeded."
+else
+    echo "Minify failed."
+    rm "${TARGET}"
+fi
