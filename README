@@ -1,8 +1,10 @@
 README
 
-Installation
-============
+Please visit http://code.google.com/p/jquery-autocomplete/ for more information.
 
-Copy the files in the src directory to your server.
+INSTALLATION
+* Copy the files in the src directory to your server.
+* See doc/jquery.autocomplete.txt for more information.
 
-See doc/jquery.autocomplete.txt for more information.
+BUGS
+* Please report bugs and issues on Google Code

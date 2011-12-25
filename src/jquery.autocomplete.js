@@ -766,10 +766,14 @@
      * jQuery autocomplete plugin
      */
     $.fn.autocomplete = function(options) {
-        if (typeof options === 'string') {
-            options = {
-                url: options
-            };
+        var url;
+        if (arguments.length > 1) {
+            url = options;
+            options = arguments[1];
+            options.url = url;
+        } else if (typeof options === 'string') {
+            url = options;
+            options = { url: url };
         }
         var o = $.extend({}, $.fn.autocomplete.defaults, options);
         return this.each(function() {

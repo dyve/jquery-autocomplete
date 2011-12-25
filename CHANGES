@@ -1,11 +1,17 @@
 CHANGES
 
-2011-04-18
-==========
+2011-12-25
+* Updated AUTHORS, CHANGES and README
+* Reinstated $().autocomplete(url, options) format
+* Small bug fixes
 
+2011-12-00
+* Added minify script to automate minimizing
+* Fixed several small bug and typos
+
+2011-04-18
 * Added preventDefaultTab and preventDefaultReturn options based on a code change by François Schiettecatte.
 * Added AUTHORS, CHANGES and README files.
 * Added demo, doc and src folders to distinguish between files you need for your implementation (src) and others.
 * Added jquery.autocomplete.min.js (Closure minimized version).
 * Several minor tweaks.
-

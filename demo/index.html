@@ -11,7 +11,10 @@
 
 $(function() {
 
-    $("#ac1").autocomplete('search.php', {minChars:5});
+    $("#ac1").autocomplete('search.php', {
+        minChars: 5,
+        selectFirst: true
+    });
 
     $("#flush").click(function() {
         var ac = $("#ac1").data('autocompleter');
