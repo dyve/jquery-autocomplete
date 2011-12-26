@@ -1,5 +1,9 @@
 CHANGES
 
+2011-12-26
+* Cleaned up some code
+* Added basic QUnit test page in folder ./test
+
 2011-12-25
 * Updated AUTHORS, CHANGES and README
 * Reinstated $().autocomplete(url, options) format

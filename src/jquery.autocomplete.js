@@ -9,12 +9,71 @@
     "use strict";
 
     /**
+     * Default settings for options
+     */
+    var defaultOptions = {
+        inputClass: 'acInput',
+        loadingClass: 'acLoading',
+        resultsClass: 'acResults',
+        selectClass: 'acSelect',
+        queryParamName: 'q',
+        limitParamName: 'limit',
+        extraParams: {},
+        remoteDataType: false,
+        lineSeparator: '\n',
+        cellSeparator: '|',
+        minChars: 2,
+        maxItemsToShow: 10,
+        delay: 400,
+        useCache: true,
+        maxCacheLength: 10,
+        matchSubset: true,
+        matchCase: false,
+        matchInside: true,
+        mustMatch: false,
+        selectFirst: false,
+        selectOnly: false,
+        showResult: null,
+        preventDefaultReturn: true,
+        preventDefaultTab: false,
+        autoFill: false,
+        filterResults: true,
+        sortResults: true,
+        sortFunction: null,
+        onItemSelect: null,
+        onNoMatch: null,
+        onFinish: null,
+        matchStringConverter: null,
+        beforeUseConverter: null,
+        autoWidth: 'min-width'
+    };
+
+    /**
      * Autocompleter Object
      * @param {jQuery} $elem jQuery object with one input tag
      * @param {Object=} options Settings
      * @constructor
      */
     $.Autocompleter = function($elem, options) {
+
+        /**
+         * Assert parameters
+         */
+        if (!$elem || !($elem instanceof jQuery) || $elem.length !== 1 || $elem.get(0).tagName.toUpperCase() !== 'INPUT') {
+            throw new Error('Invalid parameter for jquery.Autocompleter, jQuery object with one element with INPUT tag expected.');
+        }
+
+        /**
+         * Init options
+         */
+        this.options = options;
+
+        /**
+         * Shortcut to self
+         * @type Object
+         * @private
+         */
+        var self = this;
 
         /**
          * Cached data
@@ -81,39 +140,27 @@
         this.finishOnBlur_ = true;
 
         /**
-         * Assert parameters
+         * Sanitize minChars
          */
-        if (!$elem || !($elem instanceof jQuery) || $elem.length !== 1 || $elem.get(0).tagName.toUpperCase() !== 'INPUT') {
-            window.alert('Invalid parameter for jquery.Autocompleter, jQuery object with one element with INPUT tag expected');
-            return false;
-        }
-
-        /**
-         * Switch off the native autocomplete
-         */
-        $elem.attr('autocomplete', 'off');
-
-        /**
-         * Init and sanitize options
-         */
-        if (typeof options === 'string') {
-            this.options = { url:options };
-        } else {
-            this.options = options;
-        }
         this.options.minChars = parseInt(this.options.minChars, 10);
         if (isNaN(this.options.minChars) || this.options.minChars < 1) {
-            this.options.minChars = 2;
+            this.options.minChars = defaultOptions.minChars;
         }
 
+        /**
+         * Sanitize maxItemsToShow
+         */
         this.options.maxItemsToShow = parseInt(this.options.maxItemsToShow, 10);
         if (isNaN(this.options.maxItemsToShow) || this.options.maxItemsToShow < 1) {
-            this.options.maxItemsToShow = 10;
+            this.options.maxItemsToShow = defaultOptions.maxItemsToShow;
         }
 
+        /**
+         * Sanitize maxCacheLength
+         */
         this.options.maxCacheLength = parseInt(this.options.maxCacheLength, 10);
         if (isNaN(this.options.maxCacheLength) || this.options.maxCacheLength < 1) {
-            this.options.maxCacheLength = 10;
+            this.options.maxCacheLength = defaultOptions.maxCacheLength;
         }
 
         /**
@@ -122,29 +169,22 @@
         this.dom = {};
 
         /**
-         * Store the input element we're attached to in the repository, add class
+         * Store the input element we're attached to in the repository
          */
         this.dom.$elem = $elem;
-        if (this.options.inputClass) {
-            this.dom.$elem.addClass(this.options.inputClass);
-        }
+
+        /**
+         * Switch off the native autocomplete and add the input class
+         */
+        this.dom.$elem.attr('autocomplete', 'off').addClass(this.options.inputClass);
 
         /**
          * Create DOM element to hold results
          */
-        this.dom.$results = $('<div></div>').hide();
-        if (this.options.resultsClass) {
-            this.dom.$results.addClass(this.options.resultsClass);
-        }
-        this.dom.$results.css({
+        this.dom.$results = $('<div></div>').hide().addClass(this.options.resultsClass).css({
             position: 'absolute'
         });
         $('body').append(this.dom.$results);
-
-        /**
-         * Shortcut to self
-         */
-        var self = this;
 
         /**
          * Attach keyboard monitoring to $elem
@@ -204,6 +244,10 @@
 
             }
         });
+
+        /**
+         * Finish on blur event
+         */
         $elem.blur(function() {
             if (self.finishOnBlur_) {
                 setTimeout(function() { self.finish(); }, 200);
@@ -284,6 +328,7 @@
 
     /**
      * Call hook
+     * Note that all called hooks are passed the autocompleter object
      */
     $.Autocompleter.prototype.callHook = function(hook, data) {
         var f = this.options[hook];
@@ -459,10 +504,20 @@
         return $.parseJSON(remoteData);
     };
 
+    /**
+     * Filter results and show them
+     * @param results
+     * @param filter
+     */
     $.Autocompleter.prototype.filterAndShowResults = function(results, filter) {
         this.showResults(this.filterResults(results, filter), filter);
     };
 
+    /**
+     * Filter results
+     * @param results
+     * @param filter
+     */
     $.Autocompleter.prototype.filterResults = function(results, filter) {
 
         var filtered = [];
@@ -521,6 +576,11 @@
 
     };
 
+    /**
+     * Sort results
+     * @param results
+     * @param filter
+     */
     $.Autocompleter.prototype.sortResults = function(results, filter) {
         var self = this;
         var sortFunction = this.options.sortFunction;
@@ -535,7 +595,12 @@
         return results;
     };
 
-    $.Autocompleter.prototype.sortValueAlpha = function(a, b, filter) {
+    /**
+     * Default sort filter
+     * @param a
+     * @param b
+     */
+    $.Autocompleter.prototype.sortValueAlpha = function(a, b) {
         a = String(a.value);
         b = String(b.value);
         if (!this.options.matchCase) {
@@ -551,6 +616,12 @@
         return 0;
     };
 
+    /**
+     * Convert string before matching
+     * @param s
+     * @param a
+     * @param b
+     */
     $.Autocompleter.prototype.matchStringConverter = function(s, a, b) {
         var converter = this.options.matchStringConverter;
         if ($.isFunction(converter)) {
@@ -559,6 +630,12 @@
         return s;
     };
 
+    /**
+     * Convert string before use
+     * @param s
+     * @param a
+     * @param b
+     */
     $.Autocompleter.prototype.beforeUseConverter = function(s, a, b) {
         var converter = this.options.beforeUseConverter;
         if ($.isFunction(converter)) {
@@ -567,14 +644,24 @@
         return s;
     };
 
+    /**
+     * Enable finish on blur event
+     */
     $.Autocompleter.prototype.enableFinishOnBlur = function() {
         this.finishOnBlur_ = true;
     };
 
+    /**
+     * Disable finish on blur event
+     */
     $.Autocompleter.prototype.disableFinishOnBlur = function() {
         this.finishOnBlur_ = false;
     };
 
+    /**
+     * Create a results item (LI element) from a result
+     * @param result
+     */
     $.Autocompleter.prototype.createItemFromResult = function(result) {
         var self = this;
         var $li = $('<li>' + this.showResult(result.value, result.data) + '</li>');
@@ -589,6 +676,11 @@
         return $li;
     };
 
+    /**
+     * Show all results
+     * @param results
+     * @param filter
+     */
     $.Autocompleter.prototype.showResults = function(results, filter) {
         var numResults = results.length;
         if (numResults === 0) {
@@ -775,53 +867,19 @@
             url = options;
             options = { url: url };
         }
-        var o = $.extend({}, $.fn.autocomplete.defaults, options);
+        var opts = $.extend({}, $.fn.autocomplete.defaults, options);
         return this.each(function() {
             var $this = $(this);
-            var ac = new $.Autocompleter($this, o);
-            $this.data('autocompleter', ac);
+            $this.data('autocompleter', new $.Autocompleter(
+                $this,
+                $.meta ? $.extend({}, opts, $this.data()) : opts
+            ));
         });
     };
 
     /**
-     * Default options for autocomplete plugin
+     * Store default options
      */
-    $.fn.autocomplete.defaults = {
-
-        inputClass: 'acInput',
-        loadingClass: 'acLoading',
-        resultsClass: 'acResults',
-        selectClass: 'acSelect',
-        queryParamName: 'q',
-        limitParamName: 'limit',
-        extraParams: {},
-        remoteDataType: false,
-        lineSeparator: '\n',
-        cellSeparator: '|',
-        minChars: 2,
-        maxItemsToShow: 10,
-        delay: 400,
-        useCache: true,
-        maxCacheLength: 10,
-        matchSubset: true,
-        matchCase: false,
-        matchInside: true,
-        mustMatch: false,
-        selectFirst: false,
-        selectOnly: false,
-        showResult: null,
-        preventDefaultReturn: true,
-        preventDefaultTab: false,
-        autoFill: false,
-        filterResults: true,
-        sortResults: true,
-        sortFunction: null,
-        onItemSelect: null,
-        onNoMatch: null,
-        onFinish: null,
-        matchStringConverter: null,
-        beforeUseConverter: null,
-        autoWidth: 'min-width'
-    };
+    $.fn.autocomplete.defaults = defaultOptions;
 
 })(jQuery);
