@@ -1,5 +1,8 @@
 CHANGES
 
+2011-12-27
+* Cleaned up some code
+
 2011-12-26
 * Cleaned up some code
 * Added basic QUnit test page in folder ./test

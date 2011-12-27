@@ -436,6 +436,7 @@
         var self = this;
         var url = this.options.url;
         var params = $.extend({}, this.options.extraParams);
+
         // If options.queryParamName === false, append query to url
         // instead of using a GET parameter
         if (this.options.queryParamName === false) {
@@ -665,13 +666,12 @@
     $.Autocompleter.prototype.createItemFromResult = function(result) {
         var self = this;
         var $li = $('<li>' + this.showResult(result.value, result.data) + '</li>');
-        $li.data('value', result.value);
-        $li.data('data', result.data);
-        $li.click(function() {
-              self.selectItem($li);
-           })
-           .mousedown(self.disableFinishOnBlur)
-           .mouseup(self.enableFinishOnBlur)
+        $li.data({value: result.value, data: result.data})
+            .click(function() {
+                self.selectItem($li);
+            })
+            .mousedown(self.disableFinishOnBlur)
+            .mouseup(self.enableFinishOnBlur)
         ;
         return $li;
     };
@@ -812,9 +812,8 @@
     $.Autocompleter.prototype.displayValue = function(value, data) {
         if ($.isFunction(this.options.displayValue)) {
             return this.options.displayValue(value, data);
-        } else {
-            return value;
         }
+        return value;
     };
 
     $.Autocompleter.prototype.finish = function() {
