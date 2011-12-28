@@ -8,12 +8,6 @@ Supports local (JavaScript object) and remote data sets. Remote data sets can be
 Works out of the box, but highly configurable using options and callback hooks.
 
 
-Dependencies
-------------
-
-The only requirement for jquery-autocomplete is jQuery. No other plugins are required.
-
-
 Usage
 -----
 
@@ -30,6 +24,12 @@ To get started, copy the files from the src/ folder to your project, and link yo
 ```
 
 For more info refer to the docs (doc/jquery.autocomplete.txt).
+
+
+Dependencies
+------------
+
+The only requirement for jquery-autocomplete is jQuery. No other plugins are required.
 
 
 Bug tracker
