@@ -1,11 +1,11 @@
 jquery-autocomplete
 ===================
 
-The original jQuery autocompleter!
+Transforms an INPUT element into an autocompleter. The autocompleter helps the user pick a value value from a list by showing available values based on keyboard input.
 
-It's sole purpose is assisting the user with choosing a value from a list (either on server or on client) by showing available values based on keyboard input. This is known as autocompletion.
+Supports local (JavaScript object) and remote data sets. Remote data sets can be delivered as plain text or JSON.
 
-To get started -- checkout https://github.com/dyve/jquery-autocomplete!
+Works out of the box, but highly configurable using options and callback hooks.
 
 
 Dependencies
@@ -23,6 +23,10 @@ To get started, copy the files from the src/ folder to your project, and link yo
 <link rel="stylesheet" type="text/css" href="PATH_TO_SRC/jquery.autocomplete.css">
 <script src="PATH_TO_JQUERY/jquery.min.js" type="text/javascript"></script>
 <script src="PATH_TO_SRC/jquery.autocomplete.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+    $("#input").autocomplete("/path/to/backend.php");
+</script>
 ```
 
 For more info refer to the docs (doc/jquery.autocomplete.txt).
