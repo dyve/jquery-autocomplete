@@ -1,7 +1,7 @@
 /*!
  * jQuery Autocompleter
  * jquery.autocomplete.js
- * http://code.google.com/p/jquery-autocomplete/
+ * https://github.com/dyve/jquery-autocomplete
  * Copyright 2011, Dylan Verheul
  * Licensed under the MIT license
  */

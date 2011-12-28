@@ -1,6 +1,9 @@
 CHANGES
 
 2011-12-27
+* Added Apache v2 as valid license
+* Added LICENSE file
+* Moved to GitHub
 * Cleaned up some code
 
 2011-12-26

@@ -1,0 +1,13 @@
+jquery-autocomplete licenses
+============================
+
+You can use this software (jquery-autocomplete) with any of these licenses, if you comply with the conditions stated in the selected license(s).
+
+MIT like jQuery
+License: http://github.com/jquery/jquery/blob/master/MIT-LICENSE.txt
+
+GPL like jQuery
+License: http://github.com/jquery/jquery/blob/master/GPL-LICENSE.txt
+
+Apache License, Version 2.0
+License: http://www.apache.org/licenses/LICENSE-2.0.txt

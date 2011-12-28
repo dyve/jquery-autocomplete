@@ -1,0 +1,47 @@
+{
+    "name": "autocomplete",
+    "version": "3.0.0",
+    "title": "jQuery Autocomplete",
+    "author": {
+        "name": "Dylan Verheul",
+        "url": "http://github.com/dyve",
+        "email": "dylan@dyve.net"
+    },
+    "licenses": [
+        {
+            "type": "MIT"
+        },
+        {
+            "type": "GPL"
+        },
+        {
+            "type": "Apache License, Version 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+    ],
+    "dependencies": {
+        "jquery": "1"
+    },
+    "description": "Assisting the user with choosing a value from a list (either on server or on client) by showing available values based on keyboard input",
+    "keywords": [
+        "autocomplete",
+        "autocompleter",
+        "combobox",
+        "dropdown",
+        "autofill"
+    ],
+    "homepage": "https://github.com/dyve/jquery-autocomplete",
+    "contributors": [
+        {
+            "name": "Allart Kooiman",
+            "email": "allartk@gmail.com"
+        },
+        {
+            "name": "François Schiettecatte",
+            "email": "fschiettecatte@gmail.com"
+        }
+    ],
+    "files": [
+        "src/"
+    ]
+}
