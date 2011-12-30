@@ -148,6 +148,8 @@ autoFill (default value: false)
 filterResults (default value: true)
 	If this is set to true, the autocompleter will filter the results presented by the server,
 	selecting only those that begin with the user input.
+	If this is set to false, the autocompleter will consider every result from the server a
+	valid response.
 
 sortResults (default value: true)
 	If this is set to true, the autocompleter will sort the results presented in alphanumeric
