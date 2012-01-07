@@ -374,11 +374,11 @@
      */
     $.Autocompleter.prototype.fetchData = function(value) {
         if (this.options.data) {
-            this.filterAndShowResults(this.options.data, value);
+            this.processResults(this.options.data, value);
         } else {
             var self = this;
             this.fetchRemoteData(value, function(remoteData) {
-                self.filterAndShowResults(remoteData, value);
+                self.processResults(remoteData, value);
             });
         }
     };
@@ -506,12 +506,65 @@
     };
 
     /**
-     * Filter results and show them
+     * Process results
      * @param results
      * @param filter
      */
-    $.Autocompleter.prototype.filterAndShowResults = function(results, filter) {
+    $.Autocompleter.prototype.processResults = function(results, filter) {
         this.showResults(this.filterResults(results, filter), filter);
+    };
+
+    /**
+     * Sanitize result
+     * @param result
+     */
+    $.Autocompleter.prototype.sanitizeResult = function(result) {
+        var value, data;
+        var type = typeof result;
+        if (type === 'string') {
+            value = result;
+            data = {};
+        } else if ($.isArray(result)) {
+            value = result[0];
+            data = result.slice(1);
+        } else if (type === 'object') {
+            value = result.value;
+            data = result.data;
+        }
+        value = String(value);
+        if (typeof data !== 'object') {
+            data = {};
+        }
+        return {
+            value: value,
+            data: data
+        };
+    };
+
+    /**
+     * Filter result
+     * @param result
+     * @param filter
+     */
+    $.Autocompleter.prototype.filterResult = function(result, filter) {
+        if (!result.value) {
+            return false;
+        }
+        if (this.options.filterResults) {
+            var pattern = this.matchStringConverter(filter);
+            var testValue = this.matchStringConverter(result.value);
+            if (!this.options.matchCase) {
+                pattern = pattern.toLowerCase();
+                testValue = testValue.toLowerCase();
+            }
+            var patternIndex = testValue.indexOf(pattern);
+            if (this.options.matchInside) {
+                return patternIndex > -1;
+            } else {
+                return patternIndex === 0;
+            }
+        }
+        return true;
     };
 
     /**
@@ -522,46 +575,12 @@
     $.Autocompleter.prototype.filterResults = function(results, filter) {
 
         var filtered = [];
-        var value, data, i, result, type, include;
-        var pattern, testValue;
+        var i, result;
 
         for (i = 0; i < results.length; i++) {
-            result = results[i];
-            type = typeof result;
-            if (type === 'string') {
-                value = result;
-                data = {};
-            } else if ($.isArray(result)) {
-                value = result[0];
-                data = result.slice(1);
-            } else if (type === 'object') {
-                value = result.value;
-                data = result.data;
-            }
-            value = String(value);
-            if (value > '') {
-                if (typeof data !== 'object') {
-                    data = {};
-                }
-                if (this.options.filterResults) {
-                    pattern = this.matchStringConverter(filter);
-                    testValue = this.matchStringConverter(value);
-                    if (!this.options.matchCase) {
-                        pattern = pattern.toLowerCase();
-                        testValue = testValue.toLowerCase();
-                    }
-                    include = testValue.indexOf(pattern);
-                    if (this.options.matchInside) {
-                        include = include > -1;
-                    } else {
-                        include = include === 0;
-                    }
-                } else {
-                    include = true;
-                }
-                if (include) {
-                    filtered.push({ value: value, data: data });
-                }
+            result = this.sanitizeResult(results[i]);
+            if (this.filterResult(result, filter)) {
+                filtered.push(result);
             }
         }
 
