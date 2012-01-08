@@ -19,12 +19,9 @@ $(document).ready(function () {
 
     test("Check default options", function() {
         var ac = $input1.data("autocompleter");
-        var defaultOptions = $.fn.autocomplete.defaults;
-        var acOptions = ac.options;
-        $.each(defaultOptions, function(index) {
-            equal(defaultOptions[index], acOptions[index]);
+        $.each($.fn.autocomplete.defaults, function(index) {
+            equal($.fn.autocomplete.defaults[index], ac.options[index]);
         });
     });
-
 
 });

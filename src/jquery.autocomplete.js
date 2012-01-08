@@ -1,17 +1,48 @@
-/*!
- * jQuery Autocompleter
- * jquery.autocomplete.js
- * https://github.com/dyve/jquery-autocomplete
- * Copyright 2011, Dylan Verheul
- * Licensed under the MIT license
+/**
+ * @fileOverview jquery-autocomplete, the jQuery Autocompleter
+ * @author <a href="mailto:dylan@dyve.net">Dylan Verheul</a>
+ * @requires jQuery 1.6+
+ *
+ * Copyright 2005-2012, Dylan Verheul
+ *
+ * Use under either MIT, GPL or Apache 2.0. See LICENSE.txt
+ *
+ * Project home: https://github.com/dyve/jquery-autocomplete
  */
+
 (function($) {
     "use strict";
 
     /**
-     * Default settings for options
+     * jQuery autocomplete plugin
+     * @param {object|string} options
+     * @returns (object} jQuery object
      */
-    var defaultOptions = {
+    $.fn.autocomplete = function(options) {
+        var url;
+        if (arguments.length > 1) {
+            url = options;
+            options = arguments[1];
+            options.url = url;
+        } else if (typeof options === 'string') {
+            url = options;
+            options = { url: url };
+        }
+        var opts = $.extend({}, $.fn.autocomplete.defaults, options);
+        return this.each(function() {
+            var $this = $(this);
+            $this.data('autocompleter', new $.Autocompleter(
+                $this,
+                $.meta ? $.extend({}, opts, $this.data()) : opts
+            ));
+        });
+    };
+
+    /**
+     * Store default options
+     * @type {object}
+     */
+    $.fn.autocomplete.defaults = {
         inputClass: 'acInput',
         loadingClass: 'acLoading',
         resultsClass: 'acResults',
@@ -49,9 +80,84 @@
     };
 
     /**
-     * Autocompleter Object
-     * @param {jQuery} $elem jQuery object with one input tag
-     * @param {Object=} options Settings
+     * Sanitize result
+     * @param {Object} result
+     * @returns {Object} object with members value (String) and data (Object)
+     * @private
+     */
+    var sanitizeResult = function(result) {
+        var value, data;
+        var type = typeof result;
+        if (type === 'string') {
+            value = result;
+            data = {};
+        } else if ($.isArray(result)) {
+            value = result[0];
+            data = result.slice(1);
+        } else if (type === 'object') {
+            value = result.value;
+            data = result.data;
+        }
+        value = String(value);
+        if (typeof data !== 'object') {
+            data = {};
+        }
+        return {
+            value: value,
+            data: data
+        };
+    };
+
+    /**
+     * Sanitize integer
+     * @param {mixed} value
+     * @param {Object} options
+     * @returns {Number} integer
+     * @private
+     */
+    var sanitizeInteger = function(value, stdValue, options) {
+        var num = parseInt(value, 10);
+        options = options || {};
+        if (isNaN(num) || (options.min && num < options.min)) {
+            num = stdValue;
+        }
+        return num;
+    };
+
+    /**
+     * Create partial url for a name/value pair
+     */
+    var makeUrlParam = function(name, value) {
+        return [name, encodeURIComponent(value)].join('=');
+    };
+
+    /**
+     * Default sort filter
+     * @param {object} a
+     * @param {object} b
+     * @param {boolean} matchCase
+     * @returns {number}
+     */
+    var sortValueAlpha = function(a, b, matchCase) {
+        a = String(a.value);
+        b = String(b.value);
+        if (!matchCase) {
+            a = a.toLowerCase();
+            b = b.toLowerCase();
+        }
+        if (a > b) {
+            return 1;
+        }
+        if (a < b) {
+            return -1;
+        }
+        return 0;
+    };
+
+    /**
+     * Autocompleter class
+     * @param {object} $elem jQuery object with one input tag
+     * @param {object} options Settings
      * @constructor
      */
     $.Autocompleter = function($elem, options) {
@@ -59,109 +165,85 @@
         /**
          * Assert parameters
          */
-        if (!$elem || !($elem instanceof jQuery) || $elem.length !== 1 || $elem.get(0).tagName.toUpperCase() !== 'INPUT') {
+        if (!$elem || !($elem instanceof $) || $elem.length !== 1 || $elem.get(0).tagName.toUpperCase() !== 'INPUT') {
             throw new Error('Invalid parameter for jquery.Autocompleter, jQuery object with one element with INPUT tag expected.');
         }
 
         /**
-         * Init options
-         */
-        this.options = options;
-
-        /**
-         * Shortcut to self
-         * @type Object
+         * @constant Link to this instance
+         * @type object
          * @private
          */
         var self = this;
 
         /**
-         * Cached data
-         * @type Object
+         * @property {object} Options for this instance
+         * @public
+         */
+        this.options = options;
+
+        /**
+         * @property object Cached data for this instance
          * @private
          */
         this.cacheData_ = {};
 
         /**
-         * Number of cached data items
-         * @type number
+         * @property {number} Number of cached data items
          * @private
          */
         this.cacheLength_ = 0;
 
         /**
-         * Class name to mark selected item
-         * @type string
+         * @property {string} Class name to mark selected item
          * @private
          */
         this.selectClass_ = 'jquery-autocomplete-selected-item';
 
         /**
-         * Handler to activation timeout
-         * @type ?number
+         * @property {number} Handler to activation timeout
          * @private
          */
         this.keyTimeout_ = null;
 
         /**
-         * Last key pressed in the input field (store for behavior)
-         * @type ?number
+         * @property {number} Last key pressed in the input field (store for behavior)
          * @private
          */
         this.lastKeyPressed_ = null;
 
         /**
-         * Last value processed by the autocompleter
-         * @type ?string
+         * @property {string} Last value processed by the autocompleter
          * @private
          */
         this.lastProcessedValue_ = null;
 
         /**
-         * Last value selected by the user
-         * @type ?string
+         * @property {string} Last value selected by the user
          * @private
          */
         this.lastSelectedValue_ = null;
 
         /**
-         * Is this autocompleter active?
-         * Set by showResults() if we have results to show
-         * @type boolean
+         * @property {boolean} Is this autocompleter active (showing results)?
+         * @see showResults
          * @private
          */
         this.active_ = false;
 
         /**
-         * Is it OK to finish on blur?
-         * @type boolean
+         * @property {boolean} Is this autocompleter allowed to finish on blur?
          * @private
          */
         this.finishOnBlur_ = true;
 
         /**
-         * Sanitize minChars
+         * Sanitize options
          */
-        this.options.minChars = parseInt(this.options.minChars, 10);
-        if (isNaN(this.options.minChars) || this.options.minChars < 1) {
-            this.options.minChars = defaultOptions.minChars;
-        }
-
-        /**
-         * Sanitize maxItemsToShow
-         */
-        this.options.maxItemsToShow = parseInt(this.options.maxItemsToShow, 10);
-        if (isNaN(this.options.maxItemsToShow) || this.options.maxItemsToShow < 1) {
-            this.options.maxItemsToShow = defaultOptions.maxItemsToShow;
-        }
-
-        /**
-         * Sanitize maxCacheLength
-         */
-        this.options.maxCacheLength = parseInt(this.options.maxCacheLength, 10);
-        if (isNaN(this.options.maxCacheLength) || this.options.maxCacheLength < 1) {
-            this.options.maxCacheLength = defaultOptions.maxCacheLength;
-        }
+        this.options.minChars = sanitizeInteger(this.options.minChars, $.fn.autocomplete.defaults.minChars, { min: 1 });
+        this.options.maxItemsToShow = sanitizeInteger(this.options.maxItemsToShow, $.fn.autocomplete.defaults.maxItemsToShow, { min: 1 });
+        this.options.maxCacheLength = sanitizeInteger(this.options.maxCacheLength, $.fn.autocomplete.defaults.maxCacheLength, { min: 1 });
+        this.options.delay = sanitizeInteger(this.options.delay, $.fn.autocomplete.defaults.delay, { min: 0 });
 
         /**
          * Init DOM elements repository
@@ -179,7 +261,7 @@
         this.dom.$elem.attr('autocomplete', 'off').addClass(this.options.inputClass);
 
         /**
-         * Create DOM element to hold results
+         * Create DOM element to hold results, and force absolute position
          */
         this.dom.$results = $('<div></div>').hide().addClass(this.options.resultsClass).css({
             position: 'absolute'
@@ -346,14 +428,10 @@
         var activateNow = function() {
             self.activateNow();
         };
-        var delay = parseInt(this.options.delay, 10);
-        if (isNaN(delay) || delay <= 0) {
-            delay = 250;
-        }
         if (this.keyTimeout_) {
             clearTimeout(this.keyTimeout_);
         }
-        this.keyTimeout_ = setTimeout(activateNow, delay);
+        this.keyTimeout_ = setTimeout(activateNow, this.options.delay);
     };
 
     /**
@@ -373,12 +451,15 @@
      * Get autocomplete data for a given value
      */
     $.Autocompleter.prototype.fetchData = function(value) {
+        var self = this;
+        var processResults = function(results, filter) {
+            self.showResults(self.filterResults(results, filter), filter);
+        };
         if (this.options.data) {
-            this.processResults(this.options.data, value);
+            processResults(this.options.data, value);
         } else {
-            var self = this;
             this.fetchRemoteData(value, function(remoteData) {
-                self.processResults(remoteData, value);
+                processResults(remoteData, value);
             });
         }
     };
@@ -451,7 +532,7 @@
 
         var urlAppend = [];
         $.each(params, function(index, value) {
-            urlAppend.push(self.makeUrlParam(index, value));
+            urlAppend.push(makeUrlParam(index, value));
         });
         if (urlAppend.length) {
             url += url.indexOf('?') === -1 ? '?' : '&';
@@ -461,19 +542,12 @@
     };
 
     /**
-     * Create partial url for a name/value pair
-     */
-    $.Autocompleter.prototype.makeUrlParam = function(name, value) {
-        return [name, encodeURIComponent(value)].join('=');
-    };
-
-    /**
      * Parse data received from server
      */
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
         var remoteDataType = this.options.remoteDataType;
         if (remoteDataType === 'json') {
-            return this.parseRemoteJSON(remoteData);
+            return $.parseJSON(remoteData);
         }
         return this.parseRemoteText(remoteData);
     };
@@ -499,52 +573,11 @@
     };
 
     /**
-     * Parse data received in JSON format
-     */
-    $.Autocompleter.prototype.parseRemoteJSON = function(remoteData) {
-        return $.parseJSON(remoteData);
-    };
-
-    /**
-     * Process results
-     * @param results
-     * @param filter
-     */
-    $.Autocompleter.prototype.processResults = function(results, filter) {
-        this.showResults(this.filterResults(results, filter), filter);
-    };
-
-    /**
-     * Sanitize result
-     * @param result
-     */
-    $.Autocompleter.prototype.sanitizeResult = function(result) {
-        var value, data;
-        var type = typeof result;
-        if (type === 'string') {
-            value = result;
-            data = {};
-        } else if ($.isArray(result)) {
-            value = result[0];
-            data = result.slice(1);
-        } else if (type === 'object') {
-            value = result.value;
-            data = result.data;
-        }
-        value = String(value);
-        if (typeof data !== 'object') {
-            data = {};
-        }
-        return {
-            value: value,
-            data: data
-        };
-    };
-
-    /**
      * Filter result
-     * @param result
-     * @param filter
+     * @param {Object} result
+     * @param {String} filter
+     * @returns {boolean} Include this result
+     * @private
      */
     $.Autocompleter.prototype.filterResult = function(result, filter) {
         if (!result.value) {
@@ -573,27 +606,22 @@
      * @param filter
      */
     $.Autocompleter.prototype.filterResults = function(results, filter) {
-
         var filtered = [];
         var i, result;
 
         for (i = 0; i < results.length; i++) {
-            result = this.sanitizeResult(results[i]);
+            result = sanitizeResult(results[i]);
             if (this.filterResult(result, filter)) {
                 filtered.push(result);
             }
         }
-
         if (this.options.sortResults) {
             filtered = this.sortResults(filtered, filter);
         }
-
         if (this.options.maxItemsToShow > 0 && this.options.maxItemsToShow < filtered.length) {
             filtered.length = this.options.maxItemsToShow;
         }
-
         return filtered;
-
     };
 
     /**
@@ -606,34 +634,13 @@
         var sortFunction = this.options.sortFunction;
         if (!$.isFunction(sortFunction)) {
             sortFunction = function(a, b, f) {
-                return self.sortValueAlpha(a, b, f);
+                return sortValueAlpha(a, b, self.options.matchCase);
             };
         }
         results.sort(function(a, b) {
-            return sortFunction(a, b, filter);
+            return sortFunction(a, b, filter, self.options);
         });
         return results;
-    };
-
-    /**
-     * Default sort filter
-     * @param a
-     * @param b
-     */
-    $.Autocompleter.prototype.sortValueAlpha = function(a, b) {
-        a = String(a.value);
-        b = String(b.value);
-        if (!this.options.matchCase) {
-            a = a.toLowerCase();
-            b = b.toLowerCase();
-        }
-        if (a > b) {
-            return 1;
-        }
-        if (a < b) {
-            return -1;
-        }
-        return 0;
     };
 
     /**
@@ -775,11 +782,13 @@
 
     $.Autocompleter.prototype.focusMove = function(modifier) {
         var $items = $('li', this.dom.$results);
-        modifier = parseInt(modifier, 10);
-        for (var i = 0; i < $items.length; i++) {
-            if ($($items[i]).hasClass(this.selectClass_)) {
-                this.focusItem(i + modifier);
-                return;
+        modifier = sanitizeInteger(modifier, 0);
+        if (modifier) {
+            for (var i = 0; i < $items.length; i++) {
+                if ($($items[i]).hasClass(this.selectClass_)) {
+                    this.focusItem(i + modifier);
+                    return;
+                }
             }
         }
         this.focusItem(0);
@@ -790,7 +799,6 @@
         if ($items.length) {
             $items.removeClass(this.selectClass_).removeClass(this.options.selectClass);
             if (typeof item === 'number') {
-                item = parseInt(item, 10);
                 if (item < 0) {
                     item = 0;
                 } else if (item >= $items.length) {
@@ -868,36 +876,12 @@
         }
     };
 
+    /**
+     * Move caret to position
+     * @param {Number} pos
+     */
     $.Autocompleter.prototype.setCaret = function(pos) {
         this.selectRange(pos, pos);
     };
-
-    /**
-     * jQuery autocomplete plugin
-     */
-    $.fn.autocomplete = function(options) {
-        var url;
-        if (arguments.length > 1) {
-            url = options;
-            options = arguments[1];
-            options.url = url;
-        } else if (typeof options === 'string') {
-            url = options;
-            options = { url: url };
-        }
-        var opts = $.extend({}, $.fn.autocomplete.defaults, options);
-        return this.each(function() {
-            var $this = $(this);
-            $this.data('autocompleter', new $.Autocompleter(
-                $this,
-                $.meta ? $.extend({}, opts, $this.data()) : opts
-            ));
-        });
-    };
-
-    /**
-     * Store default options
-     */
-    $.fn.autocomplete.defaults = defaultOptions;
 
 })(jQuery);
