@@ -132,6 +132,23 @@
     };
 
     /**
+     * Build an url
+     * @param {string} url Base url
+     * @param {object} [params] Dictionary of parameters
+     */
+    var makeUrl = function(url, params) {
+        var urlAppend = [];
+        $.each(params, function(index, value) {
+            urlAppend.push(makeUrlParam(index, value));
+        });
+        if (urlAppend.length) {
+            url += url.indexOf('?') === -1 ? '?' : '&';
+            url += urlAppend.join('&');
+        }
+        return url;
+    };
+
+    /**
      * Default sort filter
      * @param {object} a
      * @param {object} b
@@ -152,6 +169,29 @@
             return -1;
         }
         return 0;
+    };
+
+    /**
+     * Parse data received in text format
+     * @param {string} text Plain text input
+     * @param {string} lineSeparator String that separates lines
+     * @param {string} cellSeparator String that separates cells
+     * @returns {array} Array of autocomplete data objects
+     */
+    var plainTextParser = function(text, lineSeparator, cellSeparator) {
+        var results = [];
+        var i, j, data, line, value, lines;
+        lines = String(text).replace('\r\n', '\n').split(lineSeparator);
+        for (i = 0; i < lines.length; i++) {
+            line = lines[i].split(cellSeparator);
+            data = [];
+            for (j = 0; j < line.length; j++) {
+                data.push(decodeURIComponent(line[j]));
+            }
+            value = data.shift();
+            results.push({ value: value, data: data });
+        }
+        return results;
     };
 
     /**
@@ -205,6 +245,12 @@
          * @private
          */
         this.keyTimeout_ = null;
+
+        /**
+         * @property {number} Handler to finish timeout
+         * @private
+         */
+        this.finishTimeout_ = null;
 
         /**
          * @property {number} Last key pressed in the input field (store for behavior)
@@ -329,10 +375,11 @@
 
         /**
          * Finish on blur event
+         * Use a timeout because instant blur gives race conditions
          */
         $elem.blur(function() {
             if (self.finishOnBlur_) {
-                setTimeout(function() { self.finish(); }, 200);
+                self.finishTimeout_ = setTimeout(function() { self.finish(); }, 200);
             }
         });
 
@@ -340,6 +387,7 @@
 
     /**
      * Position output DOM elements
+     * @private
      */
     $.Autocompleter.prototype.position = function() {
         var offset = this.dom.$elem.offset();
@@ -351,6 +399,7 @@
 
     /**
      * Read from cache
+     * @private
      */
     $.Autocompleter.prototype.cacheRead = function(filter) {
         var filterLength, searchLength, search, maxPos, pos;
@@ -384,6 +433,7 @@
 
     /**
      * Write to cache
+     * @private
      */
     $.Autocompleter.prototype.cacheWrite = function(filter, data) {
         if (this.options.useCache) {
@@ -402,6 +452,7 @@
 
     /**
      * Flush cache
+     * @public
      */
     $.Autocompleter.prototype.cacheFlush = function() {
         this.cacheData_ = {};
@@ -411,6 +462,9 @@
     /**
      * Call hook
      * Note that all called hooks are passed the autocompleter object
+     * @param {string} hook
+     * @param data
+     * @returns Result of called hook, false if hook is undefined
      */
     $.Autocompleter.prototype.callHook = function(hook, data) {
         var f = this.options[hook];
@@ -425,13 +479,12 @@
      */
     $.Autocompleter.prototype.activate = function() {
         var self = this;
-        var activateNow = function() {
-            self.activateNow();
-        };
         if (this.keyTimeout_) {
             clearTimeout(this.keyTimeout_);
         }
-        this.keyTimeout_ = setTimeout(activateNow, this.options.delay);
+        this.keyTimeout_ = setTimeout(function() {
+            self.activateNow();
+        }, this.options.delay);
     };
 
     /**
@@ -449,6 +502,8 @@
 
     /**
      * Get autocomplete data for a given value
+     * @param {string} Value to base autocompletion on
+     * @private
      */
     $.Autocompleter.prototype.fetchData = function(value) {
         var self = this;
@@ -466,6 +521,9 @@
 
     /**
      * Get remote autocomplete data for a given value
+     * @param {string} filter The filter to base remote data on
+     * @param {function} callback The function to call after data retrieval
+     * @private
      */
     $.Autocompleter.prototype.fetchRemoteData = function(filter, callback) {
         var data = this.cacheRead(filter);
@@ -496,6 +554,9 @@
 
     /**
      * Create or update an extra parameter for the remote request
+     * @param {string} name Parameter name
+     * @param {string} value Parameter value
+     * @public
      */
     $.Autocompleter.prototype.setExtraParam = function(name, value) {
         var index = $.trim(String(name));
@@ -530,15 +591,7 @@
             params[this.options.limitParamName] = this.options.maxItemsToShow;
         }
 
-        var urlAppend = [];
-        $.each(params, function(index, value) {
-            urlAppend.push(makeUrlParam(index, value));
-        });
-        if (urlAppend.length) {
-            url += url.indexOf('?') === -1 ? '?' : '&';
-            url += urlAppend.join('&');
-        }
-        return url;
+        return makeUrl(url, params);
     };
 
     /**
@@ -549,27 +602,7 @@
         if (remoteDataType === 'json') {
             return $.parseJSON(remoteData);
         }
-        return this.parseRemoteText(remoteData);
-    };
-
-    /**
-     * Parse data received in text format
-     */
-    $.Autocompleter.prototype.parseRemoteText = function(remoteData) {
-        var results = [];
-        var text = String(remoteData).replace('\r\n', this.options.lineSeparator);
-        var i, j, data, line, lines = text.split(this.options.lineSeparator);
-        var value;
-        for (i = 0; i < lines.length; i++) {
-            line = lines[i].split(this.options.cellSeparator);
-            data = [];
-            for (j = 0; j < line.length; j++) {
-                data.push(decodeURIComponent(line[j]));
-            }
-            value = data.shift();
-            results.push({ value: value, data: data });
-        }
-        return results;
+        return plainTextParser(remoteData, this.options.lineSeparator, this.options.cellSeparator);
     };
 
     /**
@@ -844,6 +877,9 @@
     };
 
     $.Autocompleter.prototype.finish = function() {
+        if (this.finishTimeout_) {
+            clearTimeout(this.finishTimeout_);
+        }
         if (this.keyTimeout_) {
             clearTimeout(this.keyTimeout_);
         }
