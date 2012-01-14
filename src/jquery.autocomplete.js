@@ -181,6 +181,7 @@
     var plainTextParser = function(text, lineSeparator, cellSeparator) {
         var results = [];
         var i, j, data, line, value, lines;
+        // Be nice, fix linebreaks before splitting on lineSeparator
         lines = String(text).replace('\r\n', '\n').split(lineSeparator);
         for (i = 0; i < lines.length; i++) {
             line = lines[i].split(cellSeparator);
@@ -502,7 +503,7 @@
 
     /**
      * Get autocomplete data for a given value
-     * @param {string} Value to base autocompletion on
+     * @param {string} value Value to base autocompletion on
      * @private
      */
     $.Autocompleter.prototype.fetchData = function(value) {
@@ -573,14 +574,15 @@
 
     /**
      * Build the url for a remote request
+     * If options.queryParamName === false, append query to url instead of using a GET parameter
+     * @param {string} param The value parameter to pass to the backend
+     * @returns {string} The finished url with parameters
      */
     $.Autocompleter.prototype.makeUrl = function(param) {
         var self = this;
         var url = this.options.url;
         var params = $.extend({}, this.options.extraParams);
 
-        // If options.queryParamName === false, append query to url
-        // instead of using a GET parameter
         if (this.options.queryParamName === false) {
             url += encodeURIComponent(param);
         } else {
@@ -596,6 +598,8 @@
 
     /**
      * Parse data received from server
+     * @param remoteData Data received from remote server
+     * @returns {array} Parsed data
      */
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
         var remoteDataType = this.options.remoteDataType;
