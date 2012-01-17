@@ -494,9 +494,11 @@
     $.Autocompleter.prototype.activateNow = function() {
         var value = this.beforeUseConverter(this.dom.$elem.val());
         if (value !== this.lastProcessedValue_ && value !== this.lastSelectedValue_) {
+            this.lastProcessedValue_ = value;
             if (value.length >= this.options.minChars) {
-                this.lastProcessedValue_ = value;
                 this.fetchData(value);
+            } else {
+                this.finish();
             }
         }
     };
