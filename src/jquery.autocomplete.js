@@ -494,11 +494,10 @@
     $.Autocompleter.prototype.activateNow = function() {
         var value = this.beforeUseConverter(this.dom.$elem.val());
         if (value !== this.lastProcessedValue_ && value !== this.lastSelectedValue_) {
+            this.active_ = true;
             this.lastProcessedValue_ = value;
             if (value.length >= this.options.minChars) {
                 this.fetchData(value);
-            } else {
-                this.finish();
             }
         }
     };
@@ -784,7 +783,6 @@
         if (this.autoFill(first, filter) || this.options.selectFirst || (this.options.selectOnly && numResults === 1)) {
             this.focusItem($first);
         }
-        this.active_ = true;
     };
 
     $.Autocompleter.prototype.showResult = function(value, data) {
@@ -896,11 +894,12 @@
             this.callHook('onNoMatch');
         }
         this.dom.$results.hide();
-        this.lastKeyPressed_ = null;
-        this.lastProcessedValue_ = null;
         if (this.active_) {
             this.callHook('onFinish');
         }
+        this.lastKeyPressed_ = null;
+        this.lastProcessedValue_ = null;
+        this.lastSelectedValue_ = null;
         this.active_ = false;
     };
 

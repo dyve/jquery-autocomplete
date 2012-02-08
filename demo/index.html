@@ -12,6 +12,8 @@
 $(function() {
 
     $("#ac1").autocomplete('search.php', {
+        minChars: 3,
+        mustMatch: true,
         selectFirst: true
     });
 
