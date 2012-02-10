@@ -363,7 +363,7 @@
                 case 27: // escape
                     if (self.active_) {
                         e.preventDefault();
-                        self.finish();
+                        self.deactivate(true);
                         return false;
                     }
                 break;
@@ -380,7 +380,7 @@
          */
         $elem.blur(function() {
             if (self.finishOnBlur_) {
-                self.finishTimeout_ = setTimeout(function() { self.finish(); }, 200);
+                self.finishTimeout_ = setTimeout(function() { self.deactivate(true); }, 200);
             }
         });
 
@@ -494,11 +494,7 @@
     $.Autocompleter.prototype.activateNow = function() {
         var value = this.beforeUseConverter(this.dom.$elem.val());
         if (value !== this.lastProcessedValue_ && value !== this.lastSelectedValue_) {
-            this.active_ = true;
-            this.lastProcessedValue_ = value;
-            if (value.length >= this.options.minChars) {
-                this.fetchData(value);
-            }
+            this.fetchData(value);
         }
     };
 
@@ -512,7 +508,9 @@
         var processResults = function(results, filter) {
             self.showResults(self.filterResults(results, filter), filter);
         };
-        if (this.options.data) {
+        if (value.length < this.options.minChars) {
+            processResults([], value);
+        } else if (this.options.data) {
             processResults(this.options.data, value);
         } else {
             this.fetchRemoteData(value, function(remoteData) {
@@ -748,7 +746,7 @@
     $.Autocompleter.prototype.showResults = function(results, filter) {
         var numResults = results.length;
         if (numResults === 0) {
-            return this.finish();
+            return this.deactivate(false);
         }
         var self = this;
         var $ul = $('<ul></ul>');
@@ -783,6 +781,7 @@
         if (this.autoFill(first, filter) || this.options.selectFirst || (this.options.selectOnly && numResults === 1)) {
             this.focusItem($first);
         }
+        this.active_ = true;
     };
 
     $.Autocompleter.prototype.showResult = function(value, data) {
@@ -856,7 +855,7 @@
         if ($item.length === 1) {
             this.selectItem($item);
         } else {
-            this.finish();
+            this.deactivate(false);
         }
     };
 
@@ -870,7 +869,7 @@
         this.dom.$elem.val(displayValue).focus();
         this.setCaret(displayValue.length);
         this.callHook('onItemSelect', { value: value, data: data });
-        this.finish();
+        this.deactivate(false);
     };
 
     $.Autocompleter.prototype.displayValue = function(value, data) {
@@ -880,27 +879,32 @@
         return value;
     };
 
-    $.Autocompleter.prototype.finish = function() {
+    $.Autocompleter.prototype.deactivate = function(finish) {
+        var current, selected;
         if (this.finishTimeout_) {
             clearTimeout(this.finishTimeout_);
         }
         if (this.keyTimeout_) {
             clearTimeout(this.keyTimeout_);
         }
-        if (this.beforeUseConverter(this.dom.$elem.val()) !== this.lastSelectedValue_) {
-            if (this.options.mustMatch) {
-                this.dom.$elem.val('');
+        if (finish) {
+            selected = this.beforeUseConverter(this.dom.$elem.val());
+            current = this.lastSelectedValue_;
+            if (selected !== current) {
+                if (this.options.mustMatch) {
+                    this.dom.$elem.val('');
+                }
+                this.callHook('onNoMatch');
             }
-            this.callHook('onNoMatch');
+            if (this.active_) {
+                this.callHook('onFinish');
+            }
+            this.lastKeyPressed_ = null;
+            this.lastProcessedValue_ = null;
+            this.lastSelectedValue_ = null;
+            this.active_ = false;
         }
         this.dom.$results.hide();
-        if (this.active_) {
-            this.callHook('onFinish');
-        }
-        this.lastKeyPressed_ = null;
-        this.lastProcessedValue_ = null;
-        this.lastSelectedValue_ = null;
-        this.active_ = false;
     };
 
     $.Autocompleter.prototype.selectRange = function(start, end) {
