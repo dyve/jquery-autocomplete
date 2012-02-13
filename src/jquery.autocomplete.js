@@ -508,6 +508,7 @@
         var processResults = function(results, filter) {
             self.showResults(self.filterResults(results, filter), filter);
         };
+        this.lastProcessedValue_ = value;
         if (value.length < this.options.minChars) {
             processResults([], value);
         } else if (this.options.data) {
@@ -745,9 +746,6 @@
      */
     $.Autocompleter.prototype.showResults = function(results, filter) {
         var numResults = results.length;
-        if (numResults === 0) {
-            return this.deactivate(false);
-        }
         var self = this;
         var $ul = $('<ul></ul>');
         var i, result, $li, autoWidth, first = false, $first = false;
@@ -880,7 +878,6 @@
     };
 
     $.Autocompleter.prototype.deactivate = function(finish) {
-        var current, selected;
         if (this.finishTimeout_) {
             clearTimeout(this.finishTimeout_);
         }
@@ -888,9 +885,7 @@
             clearTimeout(this.keyTimeout_);
         }
         if (finish) {
-            selected = this.beforeUseConverter(this.dom.$elem.val());
-            current = this.lastSelectedValue_;
-            if (selected !== current) {
+            if (this.lastProcessedValue_ !== this.lastSelectedValue_) {
                 if (this.options.mustMatch) {
                     this.dom.$elem.val('');
                 }
