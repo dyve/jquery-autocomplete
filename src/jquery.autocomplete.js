@@ -532,7 +532,7 @@
             callback(data);
         } else {
             var self = this;
-            this.dom.$elem.addClass(this.options.loadingClass);
+            var dataType = self.options.remoteDataType === 'json' ? 'json' : 'text';
             var ajaxCallback = function(data) {
                 var parsed = false;
                 if (data !== false) {
@@ -542,13 +542,14 @@
                 self.dom.$elem.removeClass(self.options.loadingClass);
                 callback(parsed);
             };
+            this.dom.$elem.addClass(this.options.loadingClass);
             $.ajax({
                 url: this.makeUrl(filter),
                 success: ajaxCallback,
                 error: function() {
                     ajaxCallback(false);
                 },
-                dataType: 'text'
+                dataType: dataType
             });
         }
     };

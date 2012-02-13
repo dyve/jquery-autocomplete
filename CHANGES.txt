@@ -1,0 +1,12 @@
+2.0.3 @ 2012-02-13
+- Send correct accept headers for JSON
+
+2.0.2 @ 2012-02-13
+- Fixed nasty issue with minChars, selectFirst and mustMatch
+
+2.0.1 @ 2012-02-10
+- Small fixes
+
+2.0.0 @ 2012-02-08
+- Using semantic versioning http://semver.org
+- Decided to call the current version 2.0.0 (considering pre-GitHub v0 and v1)
