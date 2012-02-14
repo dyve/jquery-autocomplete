@@ -1,3 +1,6 @@
+2.0.4 @ 2012-02-14
+- Do not show results wrapper when no results found
+
 2.0.3 @ 2012-02-13
 - Send correct accept headers for JSON
 

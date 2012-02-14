@@ -750,37 +750,43 @@
         var self = this;
         var $ul = $('<ul></ul>');
         var i, result, $li, autoWidth, first = false, $first = false;
-        for (i = 0; i < numResults; i++) {
-            result = results[i];
-            $li = this.createItemFromResult(result);
-            $ul.append($li);
-            if (first === false) {
-                first = String(result.value);
-                $first = $li;
-                $li.addClass(this.options.firstItemClass);
-            }
-            if (i === numResults - 1) {
-                $li.addClass(this.options.lastItemClass);
-            }
-        }
 
-        // Always recalculate position before showing since window size or
-        // input element location may have changed.
-        this.position();
+        if (numResults) {
+            for (i = 0; i < numResults; i++) {
+                result = results[i];
+                $li = this.createItemFromResult(result);
+                $ul.append($li);
+                if (first === false) {
+                    first = String(result.value);
+                    $first = $li;
+                    $li.addClass(this.options.firstItemClass);
+                }
+                if (i === numResults - 1) {
+                    $li.addClass(this.options.lastItemClass);
+                }
+            }
 
-        this.dom.$results.html($ul).show();
-        if (this.options.autoWidth) {
-            autoWidth = this.dom.$elem.outerWidth() - this.dom.$results.outerWidth() + this.dom.$results.width();
-            this.dom.$results.css(this.options.autoWidth, autoWidth);
+            // Always recalculate position before showing since window size or
+            // input element location may have changed.
+            this.position();
+
+            this.dom.$results.html($ul).show();
+            if (this.options.autoWidth) {
+                autoWidth = this.dom.$elem.outerWidth() - this.dom.$results.outerWidth() + this.dom.$results.width();
+                this.dom.$results.css(this.options.autoWidth, autoWidth);
+            }
+            $('li', this.dom.$results).hover(
+                function() { self.focusItem(this); },
+                function() { /* void */ }
+            );
+            if (this.autoFill(first, filter) || this.options.selectFirst || (this.options.selectOnly && numResults === 1)) {
+                this.focusItem($first);
+            }
+            this.active_ = true;
+        } else {
+            this.hideResults();
+            this.active_ = false;
         }
-        $('li', this.dom.$results).hover(
-            function() { self.focusItem(this); },
-            function() { /* void */ }
-        );
-        if (this.autoFill(first, filter) || this.options.selectFirst || (this.options.selectOnly && numResults === 1)) {
-            this.focusItem($first);
-        }
-        this.active_ = true;
     };
 
     $.Autocompleter.prototype.showResult = function(value, data) {
@@ -878,6 +884,10 @@
         return value;
     };
 
+    $.Autocompleter.prototype.hideResults = function() {
+        this.dom.$results.hide();
+    };
+
     $.Autocompleter.prototype.deactivate = function(finish) {
         if (this.finishTimeout_) {
             clearTimeout(this.finishTimeout_);
@@ -900,7 +910,7 @@
             this.lastSelectedValue_ = null;
             this.active_ = false;
         }
-        this.dom.$results.hide();
+        this.hideResults();
     };
 
     $.Autocompleter.prototype.selectRange = function(start, end) {
