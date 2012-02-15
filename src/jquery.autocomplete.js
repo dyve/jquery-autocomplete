@@ -603,9 +603,17 @@
      * @returns {array} Parsed data
      */
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
-        var remoteDataType = this.options.remoteDataType;
-        if (remoteDataType === 'json') {
-            return $.parseJSON(remoteData);
+        var remoteDataType;
+        if (this.options.remoteDataType === 'json') {
+            remoteDataType = typeof(remoteData);
+            switch (remoteDataType) {
+                case 'object':
+                    return remoteData;
+                case 'string':
+                    return $.parseJSON(remoteData);
+                default:
+                    throw new Error("Unexpected remote data type: " + remoteDataType);
+            }
         }
         return plainTextParser(remoteData, this.options.lineSeparator, this.options.cellSeparator);
     };
