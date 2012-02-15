@@ -8,14 +8,8 @@ Usage :
 $("selector").autocomplete(url [, options]);
 
 
-Demo page (search for English bird names, type "com" for example) :
-===================================================================
-
-http://www.dyve.net/jquery?autocomplete
-
-
 Restriction :
-========
+=============
 
 Selector should select one input element. Anything else will cause Autocomplete to exit with an error message.
 
@@ -44,7 +38,6 @@ foo fighters
 food fight
 
 Note that the autocompleter will present the options in the order the backend sends them.
-
 
 
 Advanced options :
@@ -185,6 +178,7 @@ beforeUseConverter  (default value: null)
 autoWidth  (default value: "min-width")
 	The CSS property to set the width of the results list to. Leave empty to stop jquery-autocomplete
 	from interfering with your results width. Other sensible values are "min-width" (default) and "width".
+
 
 More advanced options :
 =======================
