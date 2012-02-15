@@ -1,6 +1,7 @@
 .acInput {
 	width: 200px;
 }
+
 .acResults {
 	padding: 0px;
 	border: 1px solid WindowFrame;
@@ -16,7 +17,7 @@
 	margin: 0;
 }
 
-.acResults li {
+.acResults ul li {
 	margin: 0px;
 	padding: 2px 5px;
 	cursor: pointer;
