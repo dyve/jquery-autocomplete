@@ -193,8 +193,9 @@ If you want to do more with your autocompleter, you can change some options on t
 The autocompleter is accessed as an attribute of the input box.
 
 Example:
-$("#input_box").autocomplete("my_autocomplete_backend.php"); // Set the autocompleter
-var ac = $("#input_box")[0].autocompleter; // A handle to our autocompleter
+
+    $("#input_box").autocomplete({ url: "my_autocomplete_backend.php" }); // Set the autocompleter
+    var ac = $("#input_box").data('autocompleter'); // A handle to our autocompleter
 
 There are currently 2 functions that can be called to influence the behaviour at run-time:
 
