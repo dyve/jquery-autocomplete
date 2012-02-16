@@ -778,11 +778,11 @@
             // input element location may have changed.
             this.position();
 
-            this.dom.$results.html($ul).show();
             if (this.options.autoWidth) {
                 autoWidth = this.dom.$elem.outerWidth() - this.dom.$results.outerWidth() + this.dom.$results.width();
                 this.dom.$results.css(this.options.autoWidth, autoWidth);
             }
+            this.dom.$results.html($ul).show();
             $('li', this.dom.$results).hover(
                 function() { self.focusItem(this); },
                 function() { /* void */ }
