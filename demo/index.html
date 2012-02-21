@@ -75,6 +75,13 @@ $(function() {
         filterResults: false
     });
 
+    $("#ac5").autocomplete('search.php', {
+        minChars: 1,
+        useDelimiter: true,
+        selectFirst: true,
+        autoFill: true,
+    });
+
     $("#toggle").click(function() {
         $("#hide").toggle(); // To test repositioning
     });
@@ -123,6 +130,14 @@ $(function() {
 
     <form>
         <input type="text" id="ac4">
+    </form>
+
+    <h2>Demo 5 (useDelimiter, autoFill, and selectFirst)</h2>
+
+    <p>Enter a comma separated list of English birds.</p>
+
+    <form>
+        <input type="text" id="ac5">
     </form>
 
     <p style="height: 100px" class="spacer">&nbsp;</p>
