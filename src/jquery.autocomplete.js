@@ -834,13 +834,11 @@
             filterLength = filter.length;
             if (lcValue.substr(0, filterLength) === lcFilter) {
                 var d = this.getDelimiterOffsets();
-                if ( d.start == 0 ) {
-                    this.setValue(value);
-                    this.selectRange(filterLength + d.start, valueLength + d.start);    
-                } else {
-                    this.setValue(' ' + value);
-                    this.selectRange(filterLength + d.start + 1, valueLength + d.start + 1);
-                }
+                var pad = d.start ? ' ' : ''; // if there is a preceding delimiter
+                this.setValue( pad + value );
+                var start = filterLength + d.start + pad.length;
+                var end = valueLength + d.start + pad.length;
+                this.selectRange(start, end);
                 return true;
             }
         }
