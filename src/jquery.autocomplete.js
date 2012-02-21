@@ -76,7 +76,10 @@
         onFinish: null,
         matchStringConverter: null,
         beforeUseConverter: null,
-        autoWidth: 'min-width'
+        autoWidth: 'min-width',
+        useDelimiter: false,
+        delimiterChar: ',',
+        delimiterKeyCode: 188
     };
 
     /**
@@ -321,6 +324,22 @@
         $elem.keydown(function(e) {
             self.lastKeyPressed_ = e.keyCode;
             switch(self.lastKeyPressed_) {
+
+                case self.options.delimiterKeyCode: // comma = 188
+                    if (self.options.useDelimiter && self.active_) {
+                        self.selectCurrent();
+                    }
+                    break;
+
+                // ignore navigational & special keys
+                case 35: // end
+                case 36: // home
+                case 16: // shift
+                case 17: // ctrl
+                case 18: // alt
+                case 37: // left
+                case 39: // right
+                    break;
 
                 case 38: // up
                     e.preventDefault();
@@ -710,6 +729,7 @@
      * @param b
      */
     $.Autocompleter.prototype.beforeUseConverter = function(s, a, b) {
+        s = this.getValue();
         var converter = this.options.beforeUseConverter;
         if ($.isFunction(converter)) {
             s = converter(s, a, b);
@@ -813,8 +833,14 @@
             valueLength = value.length;
             filterLength = filter.length;
             if (lcValue.substr(0, filterLength) === lcFilter) {
-                this.dom.$elem.val(value);
-                this.selectRange(filterLength, valueLength);
+                var d = this.getDelimiterOffsets();
+                if ( d.start == 0 ) {
+                    this.setValue(value);
+                    this.selectRange(filterLength + d.start, valueLength + d.start);    
+                } else {
+                    this.setValue(' ' + value);
+                    this.selectRange(filterLength + d.start + 1, valueLength + d.start + 1);
+                }
                 return true;
             }
         }
@@ -879,10 +905,28 @@
         var processedDisplayValue = this.beforeUseConverter(displayValue);
         this.lastProcessedValue_ = processedDisplayValue;
         this.lastSelectedValue_ = processedDisplayValue;
-        this.dom.$elem.val(displayValue).focus();
-        this.setCaret(displayValue.length);
+        var d = this.getDelimiterOffsets();
+        var delimiter = this.options.delimiterChar;
+        var elem = this.dom.$elem;
+        var extraCaretPos = 0;
+        if ( this.options.useDelimiter ) {
+            // if there is a preceding delimiter, add a space after the delimiter
+            if ( elem.val().substring(d.start-1, d.start) == delimiter ) {
+                displayValue = ' ' + displayValue;
+            }
+            // if there is not already a delimiter trailing this value, add it
+            if ( elem.val().substring(d.end, d.end+1) != delimiter && this.lastKeyPressed_ != this.options.delimiterKeyCode ) {
+                displayValue = displayValue + delimiter;
+            } else {
+                // move the cursor after the existing trailing delimiter
+                extraCaretPos = 1;
+            }
+        }
+        this.setValue(displayValue);
+        elem.focus();
+        this.setCaret(d.start + displayValue.length + extraCaretPos);
         this.callHook('onItemSelect', { value: value, data: data });
-        this.deactivate(false);
+        this.deactivate(true);
     };
 
     $.Autocompleter.prototype.displayValue = function(value, data) {
@@ -906,7 +950,7 @@
         if (finish) {
             if (this.lastProcessedValue_ !== this.lastSelectedValue_) {
                 if (this.options.mustMatch) {
-                    this.dom.$elem.val('');
+                    this.setValue('');
                 }
                 this.callHook('onNoMatch');
             }
@@ -941,6 +985,93 @@
      */
     $.Autocompleter.prototype.setCaret = function(pos) {
         this.selectRange(pos, pos);
+    };
+
+    /**
+     * Get caret position
+     */
+    $.Autocompleter.prototype.getCaret = function() {
+        var elem = this.dom.$elem;
+        if ($.browser.msie) {
+            // ie
+            var selection = document.selection;
+            if (elem[0].tagName.toLowerCase() != 'textarea') {
+                var val = elem.val();
+                var range = selection.createRange().duplicate();
+                range.moveEnd('character', val.length);
+                var s = ( range.text == '' ? val.length : val.lastIndexOf(range.text) );
+                range = selection.createRange().duplicate();
+                range.moveStart('character', -val.length);
+                var e = range.text.length;
+            } else {
+                var range = selection.createRange();
+                var stored_range = range.duplicate();
+                stored_range.moveToElementText(elem[0]);
+                stored_range.setEndPoint('EndToEnd', range);
+                var s = stored_range.text.length - range.text.length;
+                var e = s + range.text.length;
+            }
+        } else {
+            // ff, chrome, safari
+            var s = elem[0].selectionStart;
+            var e = elem[0].selectionEnd;
+        }
+        return {
+            start: s,
+            end: e
+        };        
+    };
+
+    /**
+     * Set the value that is currently being autocompleted
+     * @param {String} value
+     */
+    $.Autocompleter.prototype.setValue = function(value) {
+        if ( this.options.useDelimiter ) {
+            // set the substring between the current delimiters
+            var val = this.dom.$elem.val();
+            var d = this.getDelimiterOffsets();
+            var preVal = val.substring(0, d.start);
+            var postVal = val.substring(d.end);
+            value = preVal + value + postVal;
+        }
+        this.dom.$elem.val(value);
+    };
+
+    /**
+     * Get the value currently being autocompleted
+     * @param {String} value
+     */
+    $.Autocompleter.prototype.getValue = function() {
+        var val = this.dom.$elem.val();
+        if ( this.options.useDelimiter ) {
+            var d = this.getDelimiterOffsets();
+            return val.substring(d.start, d.end).trim();
+        } else {
+            return val;
+        }
+    };
+
+    /**
+     * Get the offsets of the value currently being autocompleted
+     */
+    $.Autocompleter.prototype.getDelimiterOffsets = function() {
+        var val = this.dom.$elem.val();
+        if ( this.options.useDelimiter ) {
+            var preCaretVal = val.substring(0, this.getCaret().start);
+            var start = preCaretVal.lastIndexOf(this.options.delimiterChar) + 1;
+            var postCaretVal = val.substring(this.getCaret().start);
+            var end = postCaretVal.indexOf(this.options.delimiterChar);
+            if ( end == -1 ) end = val.length;
+            end += this.getCaret().start;
+        } else {
+            start = 0;
+            end = val.length;
+        }
+        return {
+            start: start,
+            end: end
+        };
     };
 
 })(jQuery);
