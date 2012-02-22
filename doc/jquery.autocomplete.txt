@@ -179,6 +179,11 @@ autoWidth  (default value: "min-width")
 	The CSS property to set the width of the results list to. Leave empty to stop jquery-autocomplete
 	from interfering with your results width. Other sensible values are "min-width" (default) and "width".
 
+useDelimiter  (default value: false)
+    Whether or not to delimit separate autocomplete strings within the same input field with a 
+    comma.  For example, you may want to allow the user to enter a comma separated list of values--and 
+    each value will autocomplete without erasing the other delimited values in the input field. 
+
 
 More advanced options :
 =======================
