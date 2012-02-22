@@ -1,3 +1,6 @@
+2.1.0 @ 2012-02-22
+useDelimiter (multiple options) added by @will123195
+
 2.0.4 @ 2012-02-14
 - Do not show results wrapper when no results found
 
