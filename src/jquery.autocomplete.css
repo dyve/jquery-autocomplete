@@ -10,11 +10,10 @@
 }
 
 .acResults ul {
-	width: 100%;
+	margin: 0px;
+	padding: 0px;
 	list-style-position: outside;
-	list-style: none;
-	padding: 0;
-	margin: 0;
+	list-style: none;	
 }
 
 .acResults ul li {
@@ -22,7 +21,6 @@
 	padding: 2px 5px;
 	cursor: pointer;
 	display: block;
-	width: 100%;
 	font: menu;
 	font-size: 12px;
 	overflow: hidden;
