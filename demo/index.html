@@ -86,6 +86,21 @@ $(function() {
         $("#hide").toggle(); // To test repositioning
     });
 
+    $("#ac6").autocomplete('http://search.twitter.com/search.json', {
+        remoteDataType: 'json',
+        processJSON: function(data) {
+            var input  = data['results'] || [],
+                output = [];
+    
+            for(var i = 0, length = input.length; i < length; i++) {
+                output[i] = {};
+                output[i].value = input[i]['text'];
+                output[i].data  = input[i]['id'];
+            }
+    
+            return output;
+        }
+    });
 });
 
     </script>
@@ -140,7 +155,16 @@ $(function() {
         <input type="text" id="ac5">
     </form>
 
+    <h2>Demo 6 (custom JSON processor)</h2>
+
+    <p>Data will be taken from Twitter Search API, so try to find something popular, e.g. <i>Apple or Microsoft</i>.</p>
+    
+    <form>
+        <input type="text" id="ac6">
+    </form>
+
     <p style="height: 100px" class="spacer">&nbsp;</p>
+    
 
     <hr>
 
