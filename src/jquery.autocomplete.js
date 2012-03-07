@@ -79,7 +79,8 @@
         autoWidth: 'min-width',
         useDelimiter: false,
         delimiterChar: ',',
-        delimiterKeyCode: 188
+        delimiterKeyCode: 188,
+        processJSON: null
     };
 
     /**
@@ -623,18 +624,22 @@
      */
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
         var remoteDataType;
+        var data = remoteData;
         if (this.options.remoteDataType === 'json') {
             remoteDataType = typeof(remoteData);
             switch (remoteDataType) {
                 case 'object':
-                    return remoteData;
+                    data = remoteData;
+                    break;
                 case 'string':
-                    return $.parseJSON(remoteData);
+                    data = $.parseJSON(remoteData);
+                    break;
                 default:
                     throw new Error("Unexpected remote data type: " + remoteDataType);
             }
+            return (this.options.processJSON) ? this.options.processJSON(data) : data;
         }
-        return plainTextParser(remoteData, this.options.lineSeparator, this.options.cellSeparator);
+        return plainTextParser(data, this.options.lineSeparator, this.options.cellSeparator);
     };
 
     /**
