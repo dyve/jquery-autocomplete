@@ -86,19 +86,14 @@ $(function() {
         $("#hide").toggle(); // To test repositioning
     });
 
-    $("#ac6").autocomplete('http://search.twitter.com/search.json', {
+    $("#ac6").autocomplete('search.php?output=json', {
         remoteDataType: 'json',
-        processJSON: function(data) {
-            var input  = data['results'] || [],
-                output = [];
-    
-            for(var i = 0, length = input.length; i < length; i++) {
-                output[i] = {};
-                output[i].value = input[i]['text'];
-                output[i].data  = input[i]['id'];
-            }
-    
-            return output;
+        processData: function(data) {
+			var i, processed = [];
+			for (i=0; i < data.length; i++) {
+				processed.push([data[i][0] + " - " + data[i][1]]);
+			}
+			return processed;
         }
     });
 });

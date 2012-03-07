@@ -80,7 +80,7 @@
         useDelimiter: false,
         delimiterChar: ',',
         delimiterKeyCode: 188,
-        processJSON: null
+        processData: null
     };
 
     /**
@@ -526,6 +526,9 @@
     $.Autocompleter.prototype.fetchData = function(value) {
         var self = this;
         var processResults = function(results, filter) {
+            if (self.options.processData) {
+                results = self.options.processData(results);
+            }
             self.showResults(self.filterResults(results, filter), filter);
         };
         this.lastProcessedValue_ = value;
@@ -637,7 +640,7 @@
                 default:
                     throw new Error("Unexpected remote data type: " + remoteDataType);
             }
-            return (this.options.processJSON) ? this.options.processJSON(data) : data;
+            return data;
         }
         return plainTextParser(data, this.options.lineSeparator, this.options.cellSeparator);
     };
