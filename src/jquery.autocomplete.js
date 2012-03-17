@@ -917,7 +917,7 @@
         var extraCaretPos = 0;
         if ( this.options.useDelimiter ) {
             // if there is a preceding delimiter, add a space after the delimiter
-            if ( elem.val().substring(d.start-1, d.start) == delimiter ) {
+            if ( elem.val().substring(d.start-1, d.start) == delimiter && delimiter != ' ' ) {
                 displayValue = ' ' + displayValue;
             }
             // if there is not already a delimiter trailing this value, add it
