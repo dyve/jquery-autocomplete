@@ -494,7 +494,7 @@
         }
         return false;
     };
-
+    
     /**
      * Set timeout to activate autocompleter
      */
@@ -929,10 +929,10 @@
             }
         }
         this.setValue(displayValue);
-        elem.focus();
         this.setCaret(d.start + displayValue.length + extraCaretPos);
         this.callHook('onItemSelect', { value: value, data: data });
         this.deactivate(true);
+        elem.focus();    
     };
 
     $.Autocompleter.prototype.displayValue = function(value, data) {
