@@ -777,6 +777,14 @@
     };
 
     /**
+     * Get all items from the results list
+     * @param result
+     */
+    $.Autocompleter.prototype.getItems = function() {
+        return $('>ul>li', this.dom.$results);
+    };
+
+    /**
      * Show all results
      * @param results
      * @param filter
@@ -811,7 +819,7 @@
                 autoWidth = this.dom.$elem.outerWidth() - this.dom.$results.outerWidth() + this.dom.$results.width();
                 this.dom.$results.css(this.options.autoWidth, autoWidth);
             }
-            $('li', this.dom.$results).hover(
+            this.getItems().hover(
                 function() { self.focusItem(this); },
                 function() { /* void */ }
             );
@@ -862,7 +870,7 @@
     };
 
     $.Autocompleter.prototype.focusMove = function(modifier) {
-        var $items = $('li', this.dom.$results);
+        var $items = this.getItems();
         modifier = sanitizeInteger(modifier, 0);
         if (modifier) {
             for (var i = 0; i < $items.length; i++) {
@@ -876,7 +884,7 @@
     };
 
     $.Autocompleter.prototype.focusItem = function(item) {
-        var $item, $items = $('li', this.dom.$results);
+        var $item, $items = this.getItems();
         if ($items.length) {
             $items.removeClass(this.selectClass_).removeClass(this.options.selectClass);
             if (typeof item === 'number') {
