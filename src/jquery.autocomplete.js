@@ -984,8 +984,8 @@
         if (input.setSelectionRange) {
             input.focus();
             input.setSelectionRange(start, end);
-        } else if (this.createTextRange) {
-            var range = this.createTextRange();
+        } else if (input.createTextRange) {
+            var range = input.createTextRange();
             range.collapse(true);
             range.moveEnd('character', end);
             range.moveStart('character', start);
