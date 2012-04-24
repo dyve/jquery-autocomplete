@@ -184,6 +184,9 @@ useDelimiter  (default value: false)
     comma.  For example, you may want to allow the user to enter a comma separated list of values--and 
     each value will autocomplete without erasing the other delimited values in the input field. 
 
+getData  (default value: null)
+    Function which return data to be processed. If several sources are present, then data is fetched
+    in following order: "data" option, "getData" option call, ajax query to remote url.
 
 More advanced options :
 =======================

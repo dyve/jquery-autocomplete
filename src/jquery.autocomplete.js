@@ -80,7 +80,8 @@
         useDelimiter: false,
         delimiterChar: ',',
         delimiterKeyCode: 188,
-        processData: null
+        processData: null,
+        getData: null
     };
 
     /**
@@ -536,6 +537,8 @@
             processResults([], value);
         } else if (this.options.data) {
             processResults(this.options.data, value);
+        } else if (this.options.getData) {
+            processResults(this.options.getData(), value);
         } else {
             this.fetchRemoteData(value, function(remoteData) {
                 processResults(remoteData, value);
