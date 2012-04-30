@@ -180,10 +180,13 @@ autoWidth  (default value: "min-width")
 	from interfering with your results width. Other sensible values are "min-width" (default) and "width".
 
 useDelimiter  (default value: false)
-    Whether or not to delimit separate autocomplete strings within the same input field with a 
-    comma.  For example, you may want to allow the user to enter a comma separated list of values--and 
-    each value will autocomplete without erasing the other delimited values in the input field. 
+  Whether or not to delimit separate autocomplete strings within the same input field with a
+  comma.  For example, you may want to allow the user to enter a comma separated list of values--and
+  each value will autocomplete without erasing the other delimited values in the input field.
 
+onError  (default value: null)
+  A JavaScript function that will be called if there is an error in the AJAX request to a remote
+  source. The standard jQuery paramaters are supplied (jqXHR, textStatus, errorThrown).
 
 More advanced options :
 =======================
