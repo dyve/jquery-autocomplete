@@ -80,7 +80,8 @@
         useDelimiter: false,
         delimiterChar: ',',
         delimiterKeyCode: 188,
-        processData: null
+        processData: null,
+        onError: null
     };
 
     /**
@@ -569,8 +570,12 @@
             $.ajax({
                 url: this.makeUrl(filter),
                 success: ajaxCallback,
-                error: function() {
-                    ajaxCallback(false);
+                error: function(jqXHR, textStatus, errorThrown) {
+                    if($.isFunction(self.options.onError)) {
+                        self.options.onError(jqXHR, textStatus, errorThrown);
+                    } else {
+                      ajaxCallback(false);
+                    }
                 },
                 dataType: dataType
             });
