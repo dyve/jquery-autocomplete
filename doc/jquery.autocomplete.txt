@@ -130,6 +130,13 @@ showResult (default value: null)
 	this function will be called. The returned value will be displayed inside an LI element in the
 	results list. Autocompleter will provide the value and the data.
 
+decorateResults (default value: null)
+	A JavaScript function that can provide advanced markup for resulting list. This function will
+	be called for jquery "ul" element. The returned value will be displayed inside top-level div.
+	Autocompleter will provide jquery-wrapped "ul" element and expects function to return any item
+	that will contain that "ul" element. Function should not change "ul" element as there are event
+	handlers bound to it and some function relying on "ul" markup.
+
 onItemSelect (default value: null)
 	A JavaScript function that will be called when an item is selected. The autocompleter will
 	specify a single argument, being the LI element selected. This LI element will have an

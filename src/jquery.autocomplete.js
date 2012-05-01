@@ -65,6 +65,7 @@
         selectFirst: false,
         selectOnly: false,
         showResult: null,
+        decorateResults: null,
         preventDefaultReturn: true,
         preventDefaultTab: false,
         autoFill: false,
@@ -783,10 +784,9 @@
 
     /**
      * Get all items from the results list
-     * @param result
      */
     $.Autocompleter.prototype.getItems = function() {
-        return $('>ul>li', this.dom.$results);
+        return $('>li', this.dom.$list);
     };
 
     /**
@@ -797,7 +797,7 @@
     $.Autocompleter.prototype.showResults = function(results, filter) {
         var numResults = results.length;
         var self = this;
-        var $ul = $('<ul></ul>');
+        var $ul = this.dom.$list = $('<ul></ul>');
         var i, result, $li, autoWidth, first = false, $first = false;
 
         if (numResults) {
@@ -819,7 +819,13 @@
             // input element location may have changed.
             this.position();
 
-            this.dom.$results.html($ul).show();
+            if (this.options.decorateResults) {
+                var newResults = this.options.decorateResults($ul);
+            } else {
+                var newResults = $ul;
+            }
+
+            this.dom.$results.html(newResults).show();
             if (this.options.autoWidth) {
                 autoWidth = this.dom.$elem.outerWidth() - this.dom.$results.outerWidth() + this.dom.$results.width();
                 this.dom.$results.css(this.options.autoWidth, autoWidth);
