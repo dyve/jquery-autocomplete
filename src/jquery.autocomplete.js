@@ -65,6 +65,7 @@
         selectFirst: false,
         selectOnly: false,
         showResult: null,
+        showEmptyResults: false,
         preventDefaultReturn: true,
         preventDefaultTab: false,
         autoFill: false,
@@ -363,20 +364,22 @@
 
                 case 9: // tab
                     if (self.active_) {
-                        self.selectCurrent();
-                        if (self.options.preventDefaultTab) {
-                            e.preventDefault();
-                            return false;
+                        if (self.selectCurrent()) {
+                            if (self.options.preventDefaultTab) {
+                                e.preventDefault();
+                                return false;
+                            }
                         }
                     }
                 break;
 
                 case 13: // return
                     if (self.active_) {
-                        self.selectCurrent();
-                        if (self.options.preventDefaultReturn) {
-                            e.preventDefault();
-                            return false;
+                        if (self.selectCurrent()) {
+                            if (self.options.preventDefaultReturn) {
+                                e.preventDefault();
+                                return false;
+                            }
                         }
                     }
                 break;
@@ -800,7 +803,7 @@
         var $ul = $('<ul></ul>');
         var i, result, $li, autoWidth, first = false, $first = false;
 
-        if (numResults) {
+        if (numResults || this.options.showEmptyResults) {
             for (i = 0; i < numResults; i++) {
                 result = results[i];
                 $li = this.createItemFromResult(result);
@@ -912,6 +915,7 @@
         var $item = $('li.' + this.selectClass_, this.dom.$results);
         if ($item.length === 1) {
             this.selectItem($item);
+            return true;
         } else {
             this.deactivate(false);
         }
