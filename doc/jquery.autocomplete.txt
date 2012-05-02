@@ -130,6 +130,9 @@ showResult (default value: null)
 	this function will be called. The returned value will be displayed inside an LI element in the
 	results list. Autocompleter will provide the value and the data.
 
+showEmptyResults (default value: false)
+    If set to true, the autocompleter will show even if no results were matched.
+
 onItemSelect (default value: null)
 	A JavaScript function that will be called when an item is selected. The autocompleter will
 	specify a single argument, being the LI element selected. This LI element will have an
