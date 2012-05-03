@@ -81,7 +81,8 @@
         delimiterChar: ',',
         delimiterKeyCode: 188,
         processData: null,
-        onError: null
+        onError: null,
+        enabled: true
     };
 
     /**
@@ -500,6 +501,7 @@
      * Set timeout to activate autocompleter
      */
     $.Autocompleter.prototype.activate = function() {
+        if (!this.options.enabled) return;
         var self = this;
         if (this.keyTimeout_) {
             clearTimeout(this.keyTimeout_);
