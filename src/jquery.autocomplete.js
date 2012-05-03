@@ -602,6 +602,18 @@
     };
 
     /**
+     * Change options of an instance
+     * @param {object} opts Object with the new options, e.g. {url: "/new/url/"}
+     * @public
+     */
+    $.Autocompleter.prototype.setOptions = function(opts) {
+        var key;
+        for (key in opts) {
+            this.options[key] = opts[key];
+        }
+    };
+
+    /**
      * Build the url for a remote request
      * If options.queryParamName === false, append query to url instead of using a GET parameter
      * @param {string} param The value parameter to pass to the backend
