@@ -64,10 +64,6 @@ selectClass = (default value: "acSelect")
 queryParamName = (default value: "q")
 	The url parameter used to request the autocomplete list. The value used is what the user entered.
 
-limitParamName = (default value: "limit")
-	The url parameter used to limit the number of entries returned from the server.
-	The value of maxItemsToShow is used as the limit.
-
 extraParams (default value: {})
 	Extra parameters for the backend. If you were to specify { bar:4 }, the autocompleter would
 	call my_autocomplete_backend.php?q=foo&bar=4 (assuming the input box contains "foo").
@@ -86,8 +82,10 @@ minChars (default value: 2)
 	The minimum number of characters a user has to type before the autocompleter activates.
 
 maxItemsToShow (default value: 10)
-	Set the maximum number of items to show. Also used as the limit value used by limitParamName.
-	If set to 0, all items will be shown.
+	Set the maximum number of items to show. If set to 0, all items will be shown. This is for
+	display purposes only, if you need to limit the values retrieved form the server, use extraParams.
+	Warning: limiting the number of items to retrieve from the server can cause unexpected problems if
+	you use caching.
 
 delay (default value: 400)
 	The delay in milliseconds the autocompleter waits after a keystroke to activate itself.
