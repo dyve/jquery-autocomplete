@@ -771,7 +771,8 @@
     $.Autocompleter.prototype.createItemFromResult = function(result) {
         var self = this;
         var $li = $('<li>' + this.showResult(result.value, result.data) + '</li>');
-        $li.data({value: result.value, data: result.data})
+        $li.data('value', result.value)
+            .data('data', result.data)
             .click(function() {
                 self.selectItem($li);
             })
