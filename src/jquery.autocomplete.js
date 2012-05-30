@@ -48,7 +48,6 @@
         resultsClass: 'acResults',
         selectClass: 'acSelect',
         queryParamName: 'q',
-        limitParamName: 'limit',
         extraParams: {},
         remoteDataType: false,
         lineSeparator: '\n',
@@ -616,10 +615,6 @@
             url += encodeURIComponent(param);
         } else {
             params[this.options.queryParamName] = param;
-        }
-
-        if (this.options.limitParamName && this.options.maxItemsToShow) {
-            params[this.options.limitParamName] = this.options.maxItemsToShow;
         }
 
         return makeUrl(url, params);
