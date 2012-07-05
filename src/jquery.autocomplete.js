@@ -127,7 +127,10 @@
         }
         return num;
     };
-
+    /**
+     * Checks for Storage support
+     */
+    var supportsLocalStorage = typeof( Storage ) !== "undefined";
     /**
      * Create partial url for a name/value pair
      */
@@ -549,7 +552,7 @@
      * @param {function} callback The function to call after data retrieval
      * @private
      */
-    $.Autocompleter.prototype.fetchRemoteData = function(filter, callback) {
+        $.Autocompleter.prototype.fetchRemoteData = function(filter, callback) {
         var data = this.cacheRead(filter);
         if (data) {
             callback(data);
@@ -557,6 +560,8 @@
             var self = this;
             var dataType = self.options.remoteDataType === 'json' ? 'json' : 'text';
             var ajaxCallback = function(data) {
+    			if(supportsLocalStorage && !localStorage.dataAutocomplete)
+					localStorage.dataAutocomplete = data;
                 var parsed = false;
                 if (data !== false) {
                     parsed = self.parseRemoteData(data);
@@ -566,6 +571,8 @@
                 callback(parsed);
             };
             this.dom.$elem.addClass(this.options.loadingClass);
+            
+            if(!supportsLocalStorage || !localStorage.dataAutocomplete)
             $.ajax({
                 url: this.makeUrl(filter),
                 success: ajaxCallback,
@@ -578,6 +585,9 @@
                 },
                 dataType: dataType
             });
+			else
+				ajaxCallback(localStorage.dataAutocomplete);
+			
         }
     };
 
