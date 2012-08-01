@@ -412,10 +412,20 @@
      */
     $.Autocompleter.prototype.position = function() {
         var offset = this.dom.$elem.offset();
-        this.dom.$results.css({
-            top: offset.top + this.dom.$elem.outerHeight(),
-            left: offset.left
-        });
+        var height = this.dom.$results.outerHeight();
+        var totalHeight = $(window).outerHeight();
+        var inputBottom = offset.top + this.dom.$elem.outerHeight();
+        var bottomIfDown = inputBottom + height;
+        // Set autocomplete results at the bottom of input
+        var position = {top: inputBottom, left: offset.left};
+        if (bottomIfDown > totalHeight) {
+            // Try to set autocomplete results at the top of input
+            var topIfUp = offset.top - height;
+            if (topIfUp >= 0) {
+                position.top = topIfUp;
+            }
+        }
+        this.dom.$results.css(position);
     };
 
     /**
@@ -810,11 +820,11 @@
                 }
             }
 
-            // Always recalculate position before showing since window size or
+            this.dom.$results.html($ul).show();
+
+            // Always recalculate position since window size or
             // input element location may have changed.
             this.position();
-
-            this.dom.$results.html($ul).show();
             if (this.options.autoWidth) {
                 autoWidth = this.dom.$elem.outerWidth() - this.dom.$results.outerWidth() + this.dom.$results.width();
                 this.dom.$results.css(this.options.autoWidth, autoWidth);
