@@ -322,7 +322,14 @@
         /**
          * Attach keyboard monitoring to $elem
          */
+        $elem.keyup(function(e) { // activate when Japanese IME ends
+            if (e.keyCode == 13) {
+                self.lastKeyPressed_ = e.keyCode;
+                self.activate();
+            }
+        });
         $elem.keydown(function(e) {
+            if (e.keyCode == 229) return; // ignore inputs within Japanese IME
             self.lastKeyPressed_ = e.keyCode;
             switch(self.lastKeyPressed_) {
 
