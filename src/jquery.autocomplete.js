@@ -398,11 +398,18 @@
          * Finish on blur event
          * Use a timeout because instant blur gives race conditions
          */
+        var onBlurFunction = function() {
+            self.deactivate(true);
+        }
         $elem.blur(function() {
             if (self.finishOnBlur_) {
-                self.finishTimeout_ = setTimeout(function() { self.deactivate(true); }, 200);
+                self.finishTimeout_ = setTimeout(onBlurFunction, 200);
             }
         });
+        /**
+         * Catch a race condition on form submit
+         */
+        $elem.parents('form').on('submit', onBlurFunction);
 
     };
 
