@@ -158,9 +158,13 @@ onNoMatch  (default value: null)
 onFinish  (default value: null)
 	A JavaScript function that will be called when finishing the autocompleter (only called if active).
 
-preventDefaultReturn  (default value: true)
-	Whether or not to prevent the default behavior of the Return key when this is used to select an item.
+preventDefaultReturn  (default value: 1)
+	Whether or not to prevent the default behavior of the Return key.
 	Return will usually submit the form.
+	Any value that evaluates to false will allow the default behaviour.
+	Any value that evaluates to 2 (integer) will always prevent the default behaviour.
+	Any other value that evaluates to true will prevent the default behavior only when the autocompleter
+	is active.
 
 preventDefaultTab  (default value: false)
 	Whether or not to prevent the default behavior of the Tab key when this is used to select an item.

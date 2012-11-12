@@ -64,8 +64,8 @@
         selectFirst: false,
         selectOnly: false,
         showResult: null,
-        preventDefaultReturn: true,
-        preventDefaultTab: false,
+        preventDefaultReturn: 1,
+        preventDefaultTab: 0,
         autoFill: false,
         filterResults: true,
         sortResults: true,
@@ -295,6 +295,12 @@
         this.options.maxItemsToShow = sanitizeInteger(this.options.maxItemsToShow, $.fn.autocomplete.defaults.maxItemsToShow, { min: 0 });
         this.options.maxCacheLength = sanitizeInteger(this.options.maxCacheLength, $.fn.autocomplete.defaults.maxCacheLength, { min: 1 });
         this.options.delay = sanitizeInteger(this.options.delay, $.fn.autocomplete.defaults.delay, { min: 0 });
+        if (this.options.preventDefaultReturn != 2) {
+            this.options.preventDefaultReturn = this.options.preventDefaultReturn ? 1 : 0;
+        }
+        if (this.options.preventDefaultTab != 2) {
+            this.options.preventDefaultTab = this.options.preventDefaultTab ? 1 : 0;
+        }
 
         /**
          * Init DOM elements repository
@@ -368,6 +374,10 @@
                             return false;
                         }
                     }
+                    if (self.options.preventDefaultTab === 2) {
+                        e.preventDefault();
+                        return false;
+                    }
                 break;
 
                 case 13: // return
@@ -377,6 +387,10 @@
                             e.preventDefault();
                             return false;
                         }
+                    }
+                    if (self.options.preventDefaultReturn === 2) {
+                        e.preventDefault();
+                        return false;
                     }
                 break;
 
