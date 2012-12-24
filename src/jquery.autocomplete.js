@@ -68,6 +68,7 @@
         preventDefaultTab: 0,
         autoFill: false,
         filterResults: true,
+        filter: true,
         sortResults: true,
         sortFunction: null,
         onItemSelect: null,
@@ -677,13 +678,13 @@
     };
 
     /**
-     * Filter result
+     * Default filter for results
      * @param {Object} result
      * @param {String} filter
      * @returns {boolean} Include this result
      * @private
      */
-    $.Autocompleter.prototype.filterResult = function(result, filter) {
+    $.Autocompleter.prototype.defaultFilter = function(result, filter) {
         if (!result.value) {
             return false;
         }
@@ -702,6 +703,26 @@
             }
         }
         return true;
+    };
+
+    /**
+     * Filter result
+     * @param {Object} result
+     * @param {String} filter
+     * @returns {boolean} Include this result
+     * @private
+     */
+    $.Autocompleter.prototype.filterResult = function(result, filter) {
+        // No filter
+        if (this.options.filter === false) {
+            return true;
+        }
+        // Custom filter
+        if ($.isFunction(this.options.filter)) {
+            return this.options.filter(result, filter);
+        }
+        // Default filter
+        return this.defaultFilter(result, filter);
     };
 
     /**

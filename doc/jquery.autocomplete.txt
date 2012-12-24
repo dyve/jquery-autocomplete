@@ -138,7 +138,15 @@ autoFill (default value: false)
 	If this is set to true, the autocompleter will automatically fill the search box with the
 	first entry in the results.
 
+filter (default value: true)
+	If this is set to false, the autocompleter will consider every result a valid response.
+	If this is set to a function, the autocompleter will call that function for each result object
+	and expect a true/false (include / leave out) response.
+	At any other setting (including true), the autocompleter will filter the results using its
+	standard filter.
+
 filterResults (default value: true)
+	DEPRECATED; use filter instead
 	If this is set to true, the autocompleter will filter the results presented by the server,
 	selecting only those that begin with the user input.
 	If this is set to false, the autocompleter will consider every result from the server a
@@ -182,9 +190,12 @@ autoWidth  (default value: "min-width")
 	from interfering with your results width. Other sensible values are "min-width" (default) and "width".
 
 useDelimiter  (default value: false)
-  Whether or not to delimit separate autocomplete strings within the same input field with a
-  comma.  For example, you may want to allow the user to enter a comma separated list of values--and
-  each value will autocomplete without erasing the other delimited values in the input field.
+    Whether or not to delimit separate autocomplete strings within the same input field with a
+    comma.  For example, you may want to allow the user to enter a comma separated list of values--and
+    each value will autocomplete without erasing the other delimited values in the input field.
+
+processData  (default value: null)
+    This function will process all incoming data before anything else. Use this to alter incoming data.
 
 onError  (default value: null)
   A JavaScript function that will be called if there is an error in the AJAX request to a remote
