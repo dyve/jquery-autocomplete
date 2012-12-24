@@ -1,15 +1,11 @@
 /**
  * @fileOverview jquery-autocomplete, the jQuery Autocompleter
  * @author <a href="mailto:dylan@dyve.net">Dylan Verheul</a>
+ * @version 2.4.0
  * @requires jQuery 1.6+
- *
- * Copyright 2005-2012, Dylan Verheul
- *
- * Use under either MIT, GPL or Apache 2.0. See LICENSE.txt
- *
- * Project home: https://github.com/dyve/jquery-autocomplete
+ * @license MIT | GPL | Apache 2.0, see LICENSE.txt
+ * @see https://github.com/dyve/jquery-autocomplete
  */
-
 (function($) {
     "use strict";
 
