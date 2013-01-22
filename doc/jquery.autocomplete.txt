@@ -64,10 +64,6 @@ selectClass = (default value: "acSelect")
 queryParamName = (default value: "q")
 	The url parameter used to request the autocomplete list. The value used is what the user entered.
 
-limitParamName = (default value: "limit")
-	The url parameter used to limit the number of entries returned from the server.
-	The value of maxItemsToShow is used as the limit.
-
 extraParams (default value: {})
 	Extra parameters for the backend. If you were to specify { bar:4 }, the autocompleter would
 	call my_autocomplete_backend.php?q=foo&bar=4 (assuming the input box contains "foo").
@@ -86,8 +82,10 @@ minChars (default value: 2)
 	The minimum number of characters a user has to type before the autocompleter activates.
 
 maxItemsToShow (default value: 10)
-	Set the maximum number of items to show. Also used as the limit value used by limitParamName.
-	If set to 0, all items will be shown.
+	Set the maximum number of items to show. If set to 0, all items will be shown. This is for
+	display purposes only, if you need to limit the values retrieved form the server, use extraParams.
+	Warning: limiting the number of items to retrieve from the server can cause unexpected problems if
+	you use caching.
 
 delay (default value: 400)
 	The delay in milliseconds the autocompleter waits after a keystroke to activate itself.
@@ -140,7 +138,15 @@ autoFill (default value: false)
 	If this is set to true, the autocompleter will automatically fill the search box with the
 	first entry in the results.
 
+filter (default value: true)
+	If this is set to false, the autocompleter will consider every result a valid response.
+	If this is set to a function, the autocompleter will call that function for each result object
+	and expect a true/false (include / leave out) response.
+	At any other setting (including true), the autocompleter will filter the results using its
+	standard filter.
+
 filterResults (default value: true)
+	DEPRECATED; use filter instead
 	If this is set to true, the autocompleter will filter the results presented by the server,
 	selecting only those that begin with the user input.
 	If this is set to false, the autocompleter will consider every result from the server a
@@ -160,9 +166,13 @@ onNoMatch  (default value: null)
 onFinish  (default value: null)
 	A JavaScript function that will be called when finishing the autocompleter (only called if active).
 
-preventDefaultReturn  (default value: true)
-	Whether or not to prevent the default behavior of the Return key when this is used to select an item.
+preventDefaultReturn  (default value: 1)
+	Whether or not to prevent the default behavior of the Return key.
 	Return will usually submit the form.
+	Any value that evaluates to false will allow the default behaviour.
+	Any value that evaluates to 2 (integer) will always prevent the default behaviour.
+	Any other value that evaluates to true will prevent the default behavior only when the autocompleter
+	is active.
 
 preventDefaultTab  (default value: false)
 	Whether or not to prevent the default behavior of the Tab key when this is used to select an item.
@@ -180,10 +190,16 @@ autoWidth  (default value: "min-width")
 	from interfering with your results width. Other sensible values are "min-width" (default) and "width".
 
 useDelimiter  (default value: false)
-    Whether or not to delimit separate autocomplete strings within the same input field with a 
-    comma.  For example, you may want to allow the user to enter a comma separated list of values--and 
-    each value will autocomplete without erasing the other delimited values in the input field. 
+    Whether or not to delimit separate autocomplete strings within the same input field with a
+    comma.  For example, you may want to allow the user to enter a comma separated list of values--and
+    each value will autocomplete without erasing the other delimited values in the input field.
 
+processData  (default value: null)
+    This function will process all incoming data before anything else. Use this to alter incoming data.
+
+onError  (default value: null)
+  A JavaScript function that will be called if there is an error in the AJAX request to a remote
+  source. The standard jQuery paramaters are supplied (jqXHR, textStatus, errorThrown).
 
 More advanced options :
 =======================

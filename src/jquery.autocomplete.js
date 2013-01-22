@@ -1,15 +1,11 @@
 /**
  * @fileOverview jquery-autocomplete, the jQuery Autocompleter
  * @author <a href="mailto:dylan@dyve.net">Dylan Verheul</a>
+ * @version 2.4.0
  * @requires jQuery 1.6+
- *
- * Copyright 2005-2012, Dylan Verheul
- *
- * Use under either MIT, GPL or Apache 2.0. See LICENSE.txt
- *
- * Project home: https://github.com/dyve/jquery-autocomplete
+ * @license MIT | GPL | Apache 2.0, see LICENSE.txt
+ * @see https://github.com/dyve/jquery-autocomplete
  */
-
 (function($) {
     "use strict";
 
@@ -48,7 +44,6 @@
         resultsClass: 'acResults',
         selectClass: 'acSelect',
         queryParamName: 'q',
-        limitParamName: 'limit',
         extraParams: {},
         remoteDataType: false,
         lineSeparator: '\n',
@@ -65,10 +60,11 @@
         selectFirst: false,
         selectOnly: false,
         showResult: null,
-        preventDefaultReturn: true,
-        preventDefaultTab: false,
+        preventDefaultReturn: 1,
+        preventDefaultTab: 0,
         autoFill: false,
         filterResults: true,
+        filter: true,
         sortResults: true,
         sortFunction: null,
         onItemSelect: null,
@@ -80,7 +76,8 @@
         useDelimiter: false,
         delimiterChar: ',',
         delimiterKeyCode: 188,
-        processData: null
+        processData: null,
+        onError: null
     };
 
     /**
@@ -291,10 +288,16 @@
         /**
          * Sanitize options
          */
-        this.options.minChars = sanitizeInteger(this.options.minChars, $.fn.autocomplete.defaults.minChars, { min: 1 });
+        this.options.minChars = sanitizeInteger(this.options.minChars, $.fn.autocomplete.defaults.minChars, { min: 0 });
         this.options.maxItemsToShow = sanitizeInteger(this.options.maxItemsToShow, $.fn.autocomplete.defaults.maxItemsToShow, { min: 0 });
         this.options.maxCacheLength = sanitizeInteger(this.options.maxCacheLength, $.fn.autocomplete.defaults.maxCacheLength, { min: 1 });
         this.options.delay = sanitizeInteger(this.options.delay, $.fn.autocomplete.defaults.delay, { min: 0 });
+        if (this.options.preventDefaultReturn != 2) {
+            this.options.preventDefaultReturn = this.options.preventDefaultReturn ? 1 : 0;
+        }
+        if (this.options.preventDefaultTab != 2) {
+            this.options.preventDefaultTab = this.options.preventDefaultTab ? 1 : 0;
+        }
 
         /**
          * Init DOM elements repository
@@ -368,6 +371,10 @@
                             return false;
                         }
                     }
+                    if (self.options.preventDefaultTab === 2) {
+                        e.preventDefault();
+                        return false;
+                    }
                 break;
 
                 case 13: // return
@@ -377,6 +384,10 @@
                             e.preventDefault();
                             return false;
                         }
+                    }
+                    if (self.options.preventDefaultReturn === 2) {
+                        e.preventDefault();
+                        return false;
                     }
                 break;
 
@@ -398,11 +409,18 @@
          * Finish on blur event
          * Use a timeout because instant blur gives race conditions
          */
+        var onBlurFunction = function() {
+            self.deactivate(true);
+        }
         $elem.blur(function() {
             if (self.finishOnBlur_) {
-                self.finishTimeout_ = setTimeout(function() { self.deactivate(true); }, 200);
+                self.finishTimeout_ = setTimeout(onBlurFunction, 200);
             }
         });
+        /**
+         * Catch a race condition on form submit
+         */
+        $elem.parents('form').on('submit', onBlurFunction);
 
     };
 
@@ -412,10 +430,20 @@
      */
     $.Autocompleter.prototype.position = function() {
         var offset = this.dom.$elem.offset();
-        this.dom.$results.css({
-            top: offset.top + this.dom.$elem.outerHeight(),
-            left: offset.left
-        });
+        var height = this.dom.$results.outerHeight();
+        var totalHeight = $(window).outerHeight();
+        var inputBottom = offset.top + this.dom.$elem.outerHeight();
+        var bottomIfDown = inputBottom + height;
+        // Set autocomplete results at the bottom of input
+        var position = {top: inputBottom, left: offset.left};
+        if (bottomIfDown > totalHeight) {
+            // Try to set autocomplete results at the top of input
+            var topIfUp = offset.top - height;
+            if (topIfUp >= 0) {
+                position.top = topIfUp;
+            }
+        }
+        this.dom.$results.css(position);
     };
 
     /**
@@ -569,8 +597,12 @@
             $.ajax({
                 url: this.makeUrl(filter),
                 success: ajaxCallback,
-                error: function() {
-                    ajaxCallback(false);
+                error: function(jqXHR, textStatus, errorThrown) {
+                    if($.isFunction(self.options.onError)) {
+                        self.options.onError(jqXHR, textStatus, errorThrown);
+                    } else {
+                      ajaxCallback(false);
+                    }
                 },
                 dataType: dataType
             });
@@ -613,10 +645,6 @@
             params[this.options.queryParamName] = param;
         }
 
-        if (this.options.limitParamName && this.options.maxItemsToShow) {
-            params[this.options.limitParamName] = this.options.maxItemsToShow;
-        }
-
         return makeUrl(url, params);
     };
 
@@ -646,13 +674,13 @@
     };
 
     /**
-     * Filter result
+     * Default filter for results
      * @param {Object} result
      * @param {String} filter
      * @returns {boolean} Include this result
      * @private
      */
-    $.Autocompleter.prototype.filterResult = function(result, filter) {
+    $.Autocompleter.prototype.defaultFilter = function(result, filter) {
         if (!result.value) {
             return false;
         }
@@ -671,6 +699,26 @@
             }
         }
         return true;
+    };
+
+    /**
+     * Filter result
+     * @param {Object} result
+     * @param {String} filter
+     * @returns {boolean} Include this result
+     * @private
+     */
+    $.Autocompleter.prototype.filterResult = function(result, filter) {
+        // No filter
+        if (this.options.filter === false) {
+            return true;
+        }
+        // Custom filter
+        if ($.isFunction(this.options.filter)) {
+            return this.options.filter(result, filter);
+        }
+        // Default filter
+        return this.defaultFilter(result, filter);
     };
 
     /**
@@ -810,11 +858,11 @@
                 }
             }
 
-            // Always recalculate position before showing since window size or
+            this.dom.$results.html($ul).show();
+
+            // Always recalculate position since window size or
             // input element location may have changed.
             this.position();
-
-            this.dom.$results.html($ul).show();
             if (this.options.autoWidth) {
                 autoWidth = this.dom.$elem.outerWidth() - this.dom.$results.outerWidth() + this.dom.$results.width();
                 this.dom.$results.css(this.options.autoWidth, autoWidth);

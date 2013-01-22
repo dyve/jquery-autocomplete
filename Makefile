@@ -4,4 +4,4 @@
 #
 
 autocomplete:
-	uglifyjs -nc ./src/jquery.autocomplete.js > ./src/jquery.autocomplete.min.js
+	uglifyjs ./src/jquery.autocomplete.js > ./src/jquery.autocomplete.min.js --comments

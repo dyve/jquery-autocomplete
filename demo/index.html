@@ -12,7 +12,7 @@
 $(function() {
 
     $("#ac1").autocomplete('search.php', {
-        minChars: 3,
+        minChars: 3
     });
 
     $("#flush").click(function() {
@@ -96,6 +96,25 @@ $(function() {
 			return processed;
         }
     });
+
+    $("#ac7").autocomplete({
+        data: [
+            ['Chico Marx'],
+            ['Harpo Marx'],
+            ['Groucho Marx'],
+        ],
+        filter: function(result, filter) {
+            var s = result.value.toLowerCase();
+            var f = filter.toLowerCase();
+            var p = s.indexOf(f);
+            if (p >= 0) {
+                // Start of text or after a whitespace
+                return p === 0 || !$.trim(s.substr(p - 1, 1));
+            }
+            return false;
+        }
+    });
+
 });
 
     </script>
@@ -158,8 +177,15 @@ $(function() {
         <input type="text" id="ac6">
     </form>
 
+    <h2>Demo 7 (custom filter)</h2>
+
+    <p>This demo uses the Marx Brothers and a custom filter.</p>
+
+    <form>
+        <input type="text" id="ac7">
+    </form>
+
     <p style="height: 100px" class="spacer">&nbsp;</p>
-    
 
     <hr>
 

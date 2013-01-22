@@ -1,3 +1,15 @@
+2.4.1 @ 2012-12-24
+Added license headers
+Fixed typo in CHANGES.txt
+
+2.4.0 @ 2012-12-24
+Deprecated filterResults, use filter instead
+Allow filter to take function as argument
+Added processData to docs
+
+2.3.1 @ 2012-11-12
+Changed preventDefaultReturn to an integer option.
+
 2.1.0 @ 2012-02-22
 useDelimiter (multiple options) added by @will123195
 
