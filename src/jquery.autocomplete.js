@@ -406,6 +406,13 @@
         });
 
         /**
+         * Attach paste event listener because paste may occur much later then keydown or even without a keydown at all
+         */
+        $elem.on('paste', function() {
+            self.activate();
+        });
+
+        /**
          * Finish on blur event
          * Use a timeout because instant blur gives race conditions
          */
