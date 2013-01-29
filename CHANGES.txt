@@ -1,3 +1,7 @@
+2.4.2 @ 2013-01-29
+Added paste handling
+Fixed bugs (see commits)
+
 2.4.1 @ 2012-12-24
 Added license headers
 Fixed typo in CHANGES.txt
