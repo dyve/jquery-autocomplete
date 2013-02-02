@@ -1,3 +1,6 @@
+2.4.2 @ 2013-02-02
+Removed $.browser (jQuery 1.9 compatibility)
+
 2.4.2 @ 2013-01-29
 Added paste handling
 Fixed bugs (see commits)
