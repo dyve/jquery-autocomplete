@@ -77,7 +77,8 @@
         delimiterChar: ',',
         delimiterKeyCode: 188,
         processData: null,
-        onError: null
+        onError: null,
+        disabled: false
     };
 
     /**
@@ -326,6 +327,9 @@
          * Attach keyboard monitoring to $elem
          */
         $elem.keydown(function(e) {
+            if (self.options.disabled) {
+                return;
+            }
             self.lastKeyPressed_ = e.keyCode;
             switch(self.lastKeyPressed_) {
 
