@@ -530,7 +530,7 @@
         }
         return false;
     };
-    
+
     /**
      * Set timeout to activate autocompleter
      */
@@ -646,7 +646,16 @@
     $.Autocompleter.prototype.makeUrl = function(param) {
         var self = this;
         var url = this.options.url;
-        var params = $.extend({}, this.options.extraParams);
+        var params = {};
+        var extraParams = jQuery.extend({}, this.options.extraParams);
+
+        $.each(extraParams, function(i, p){
+
+           if(typeof p === "function") extraParams[i] = p();
+
+        });
+
+        params = $.extend({}, extraParams);
 
         if (this.options.queryParamName === false) {
             url += encodeURIComponent(param);
@@ -995,7 +1004,7 @@
         this.setCaret(d.start + displayValue.length + extraCaretPos);
         this.callHook('onItemSelect', { value: value, data: data });
         this.deactivate(true);
-        elem.focus();    
+        elem.focus();
     };
 
     $.Autocompleter.prototype.displayValue = function(value, data) {
@@ -1092,7 +1101,7 @@
         return {
             start: start,
             end: end
-        };        
+        };
     };
 
     /**
