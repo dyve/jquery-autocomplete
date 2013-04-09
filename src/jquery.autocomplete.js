@@ -635,6 +635,8 @@
                 this.cacheFlush();
             }
         }
+
+        return this;
     };
 
     /**
