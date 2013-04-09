@@ -217,7 +217,7 @@ There are currently 2 functions that can be called to influence the behaviour at
 flushCache()
 	This flushes the cache.
 
-setExtraParams(obj)
-	This sets the extra parameters of the autocompleter to obj (which should be a JavaScript object, see above).
+setExtraParam(key, value)
+	This sets the extra parameter of the autocompleter.
 
-It's often wise to flush the cache after calling setExtraParameters.
+It's often wise to flush the cache after calling setExtraParam.
