@@ -59,7 +59,7 @@ resultsClass (default value: "acResults")
 	The class for the UL that will contain the result items (result items are LI elements).
 
 selectClass = (default value: "acSelect")
-	The class for the input box while results are being fetched from the server.
+	The class for the list row when row is selected by keyboard or hovered.
 
 queryParamName = (default value: "q")
 	The url parameter used to request the autocomplete list. The value used is what the user entered.
