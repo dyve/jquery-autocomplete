@@ -1,6 +1,15 @@
 jquery-autocomplete
 ===================
 
+VACANCY
+-------
+
+I have limited time and this project deserves to be better maintained. I would like to add an active committer to this project that can take it to the next level. I'll still be around, I'm not going anywhere, but I'm more focused on my Django projects right now.
+
+
+What is it?
+-----------
+
 Transforms an INPUT element into an autocompleter. The autocompleter helps the user pick a value value from a list by showing available values based on keyboard input.
 
 Supports local (JavaScript object) and remote data sets. Remote data sets can be delivered as plain text or JSON.
