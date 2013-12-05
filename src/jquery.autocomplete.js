@@ -1066,7 +1066,7 @@
         var $elem = this.dom.$elem;
         var elem = $elem[0];
         var val, selection, range, start, end, stored_range;
-        if (elem.createTextRange) { // IE
+        if (elem.createTextRange && document.selection) { // IE11 >
             selection = document.selection;
             if (elem.tagName.toLowerCase() != 'textarea') {
                 val = $elem.val();
