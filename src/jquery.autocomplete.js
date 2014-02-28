@@ -563,7 +563,7 @@
      */
     $.Autocompleter.prototype.fetchData = function(value) {
         var self = this,
-            filter_result;
+            filter_results;
         var processResults = function(results, filter) {
             if (self.options.processData) {
                 results = self.options.processData(results);
