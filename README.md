@@ -1,10 +1,10 @@
 jquery-autocomplete
 ===================
 
-VACANCY
--------
+RETIRING THIS PROJECT
+---------------------
 
-I have limited time and this project deserves to be better maintained. I would like to add an active committer to this project that can take it to the next level. I'll still be around, I'm not going anywhere, but I'm more focused on my Django projects right now.
+I'm seriously considering retiring this project. A serious rewrite would be needed to get this up to my current programming standards, and I don't have the time for that. Also, I find myself using the excellent Select2 (http://ivaynberg.github.io/select2/) these days most of the time instead of jquery-autocomplete.
 
 
 What is it?
