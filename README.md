@@ -1,10 +1,17 @@
 jquery-autocomplete
 ===================
 
-RETIRING THIS PROJECT
----------------------
+NOTE: THIS PROJECT IS RETIRED / ABANDONED
+-----------------------------------------
 
-I'm seriously considering retiring this project. A serious rewrite would be needed to get this up to my current programming standards, and I don't have the time for that. Also, I find myself using the excellent Select2 (http://ivaynberg.github.io/select2/) these days most of the time instead of jquery-autocomplete.
+The time has come to retire this project. The code is not up to my current programming standards, and I don't feel motivated enought to go through another rewrite. There is also not much need, because of excellent alternatives like Select2 (http://ivaynberg.github.io/select2/) and the various jQuery autocomplete efforts that have evolved from or parrallel to my original (just google jquery autocomplete).
+
+This means that current and future bugs probably won't be fixed, unless the project finds a new caretaker. Contact me if you are interested in that role.
+
+I'm immensely proud of the fact that this autocompleter has served as long as it has. It's found is way into all kinds of web sites (up to and inclusing Barack Obama's election compaign) applications and projects. Thank you all!
+
+Dylan Verheul
+http://dyve.net
 
 
 What is it?
