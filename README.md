@@ -8,7 +8,7 @@ The time has come to retire this project. The code is not up to my current progr
 
 This means that current and future bugs probably won't be fixed, unless the project finds a new caretaker. Contact me if you are interested in that role.
 
-I'm immensely proud of the fact that this autocompleter has served as long as it has. It's found is way into all kinds of web sites (up to and inclusing Barack Obama's election compaign) applications and projects. Thank you all!
+I'm immensely proud that this autocompleter has served the web as long as it has. It's found is way into all kinds of projects and web sites (including Barack Obama's campaign and several Mozilla projects). Thank you all!
 
 Dylan Verheul
 http://dyve.net
