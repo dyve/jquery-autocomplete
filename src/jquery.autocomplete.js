@@ -1132,11 +1132,12 @@
      */
     $.Autocompleter.prototype.getDelimiterOffsets = function() {
         var val = this.dom.$elem.val();
+        var start, end;
         if ( this.options.useDelimiter ) {
             var preCaretVal = val.substring(0, this.getCaret().start);
-            var start = preCaretVal.lastIndexOf(this.options.delimiterChar) + 1;
             var postCaretVal = val.substring(this.getCaret().start);
-            var end = postCaretVal.indexOf(this.options.delimiterChar);
+            start = preCaretVal.lastIndexOf(this.options.delimiterChar) + 1;
+            end = postCaretVal.indexOf(this.options.delimiterChar);
             if ( end == -1 ) end = val.length;
             end += this.getCaret().start;
         } else {
