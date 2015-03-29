@@ -591,6 +591,11 @@
         if (data) {
             callback(data);
         } else {
+            this._reqCounter = this._reqCounter || 0;
+            this._reqCounter++;
+
+            var reqCounter = this._reqCounter;
+
             var self = this;
             var dataType = self.options.remoteDataType === 'json' ? 'json' : 'text';
             var ajaxCallback = function(data) {
@@ -599,8 +604,10 @@
                     parsed = self.parseRemoteData(data);
                     self.cacheWrite(filter, parsed);
                 }
-                self.dom.$elem.removeClass(self.options.loadingClass);
-                callback(parsed);
+                if (self._reqCounter == reqCounter) {
+                    self.dom.$elem.removeClass(self.options.loadingClass);
+                    callback(parsed);
+                }
             };
             this.dom.$elem.addClass(this.options.loadingClass);
             $.ajax({
