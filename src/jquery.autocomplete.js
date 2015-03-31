@@ -648,7 +648,16 @@
     $.Autocompleter.prototype.makeUrl = function(param) {
         var self = this;
         var url = this.options.url;
-        var params = $.extend({}, this.options.extraParams);
+        var params = {};
+        var extraParams = jQuery.extend({}, this.options.extraParams);
+
+        $.each(extraParams, function(i, p){
+
+           if(typeof p === "function") extraParams[i] = p();
+
+        });
+
+        params = $.extend({}, extraParams);
 
         if (this.options.queryParamName === false) {
             url += encodeURIComponent(param);
