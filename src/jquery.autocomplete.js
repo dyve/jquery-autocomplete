@@ -418,8 +418,8 @@
          * Use a timeout because instant blur gives race conditions
          */
         var onBlurFunction = function() {
-            self.deactivate(true);
-        }
+        		self.deactivate(true);
+        	}
         $elem.blur(function() {
             if (self.finishOnBlur_) {
                 self.finishTimeout_ = setTimeout(onBlurFunction, 200);
@@ -828,8 +828,8 @@
             .click(function() {
                 self.selectItem($li);
             })
-            .mousedown(self.disableFinishOnBlur)
-            .mouseup(self.enableFinishOnBlur)
+            .mousedown(function(){self.disableFinishOnBlur()})
+            .mouseup(function(){self.enableFinishOnBlur()})
         ;
         return $li;
     };
