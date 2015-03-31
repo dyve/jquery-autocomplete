@@ -825,7 +825,7 @@
         var $li = $('<li/>');
         $li.html(this.showResult(result.value, result.data));
         $li.data({value: result.value, data: result.data})
-            .click(function() {
+            .mousedown(function() {
                 self.selectItem($li);
             })
             .mousedown(self.disableFinishOnBlur)
