@@ -43,6 +43,7 @@
         loadingClass: 'acLoading',
         resultsClass: 'acResults',
         selectClass: 'acSelect',
+        listClass: 'acList',
         queryParamName: 'q',
         extraParams: {},
         remoteDataType: false,
@@ -868,7 +869,7 @@
                 }
             }
 
-            this.dom.$results.html($ul).show();
+            this.dom.$results.html($ul.addClass(this.options.listClass)).show();
 
             // Always recalculate position since window size or
             // input element location may have changed.
