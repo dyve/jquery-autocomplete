@@ -46,6 +46,7 @@
         queryParamName: 'q',
         extraParams: {},
         remoteDataType: false,
+        jsonpCallback: false,
         lineSeparator: '\n',
         cellSeparator: '|',
         minChars: 2,
@@ -592,7 +593,7 @@
             callback(data);
         } else {
             var self = this;
-            var dataType = self.options.remoteDataType === 'json' ? 'json' : 'text';
+            
             var ajaxCallback = function(data) {
                 var parsed = false;
                 if (data !== false) {
@@ -603,7 +604,7 @@
                 callback(parsed);
             };
             this.dom.$elem.addClass(this.options.loadingClass);
-            $.ajax({
+            var ajaxOptions = {
                 url: this.makeUrl(filter),
                 success: ajaxCallback,
                 error: function(jqXHR, textStatus, errorThrown) {
@@ -612,9 +613,23 @@
                     } else {
                       ajaxCallback(false);
                     }
-                },
-                dataType: dataType
-            });
+                }
+            }
+
+            // extend ajaxOptions with dataType and jsonpCallback if needed
+            // default dataType = "text"
+            var dataType = self.options.remoteDataType;
+            if (dataType === 'json') {
+              ajaxOptions['dataType'] = dataType;
+            } else if (dataType === 'jsonp') {
+              ajaxOptions['jsonpCallback'] = (self.options.jsonpCallback) ? self.options.jsonpCallback :
+                                                                            'jsonpCallback';
+              ajaxOptions['dataType'] = dataType;
+            } else {
+              ajaxOptions['dataType'] = 'text';
+            }
+
+            $.ajax(ajaxOptions);
         }
     };
 
@@ -667,7 +682,7 @@
     $.Autocompleter.prototype.parseRemoteData = function(remoteData) {
         var remoteDataType;
         var data = remoteData;
-        if (this.options.remoteDataType === 'json') {
+        if (this.options.remoteDataType === 'json' || this.options.remoteDataType === 'jsonp') {
             remoteDataType = typeof(remoteData);
             switch (remoteDataType) {
                 case 'object':
