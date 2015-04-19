@@ -287,6 +287,12 @@
         this.finishOnBlur_ = true;
 
         /**
+         * @property {string} Results DOM's relative position to $elem, 'top' or 'bottom'
+         * @private
+         */
+        this.position_ = 'bottom'
+
+        /**
          * Sanitize options
          */
         this.options.minChars = sanitizeInteger(this.options.minChars, $.fn.autocomplete.defaults.minChars, { min: 0 });
@@ -444,11 +450,13 @@
         var bottomIfDown = inputBottom + height;
         // Set autocomplete results at the bottom of input
         var position = {top: inputBottom, left: offset.left};
+        this.position_ = 'bottom';
         if (bottomIfDown > totalHeight) {
             // Try to set autocomplete results at the top of input
             var topIfUp = offset.top - height;
             if (topIfUp >= 0) {
                 position.top = topIfUp;
+                this.position_ = 'top';
             }
         }
         this.dom.$results.css(position);
@@ -938,7 +946,12 @@
                 }
             }
         }
-        this.focusItem(0);
+        if (this.position_ == 'bottom') {
+            this.focusItem(0);
+        }
+        else if (this.position_ == 'top') {
+            this.focusItem($items.length);
+        }
     };
 
     $.Autocompleter.prototype.focusItem = function(item) {
