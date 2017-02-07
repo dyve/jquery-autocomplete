@@ -45,6 +45,7 @@
         selectClass: 'acSelect',
         queryParamName: 'q',
         extraParams: {},
+        fetchRemoteData: null,
         remoteDataType: false,
         lineSeparator: '\n',
         cellSeparator: '|',
@@ -592,29 +593,33 @@
             callback(data);
         } else {
             var self = this;
-            var dataType = self.options.remoteDataType === 'json' ? 'json' : 'text';
-            var ajaxCallback = function(data) {
-                var parsed = false;
-                if (data !== false) {
-                    parsed = self.parseRemoteData(data);
-                    self.cacheWrite(filter, parsed);
-                }
-                self.dom.$elem.removeClass(self.options.loadingClass);
-                callback(parsed);
-            };
-            this.dom.$elem.addClass(this.options.loadingClass);
-            $.ajax({
-                url: this.makeUrl(filter),
-                success: ajaxCallback,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    if($.isFunction(self.options.onError)) {
-                        self.options.onError(jqXHR, textStatus, errorThrown);
-                    } else {
-                      ajaxCallback(false);
+            if ($.isFunction(self.options.fetchRemoteData)) {
+                self.options.fetchRemoteData(filter, callback);
+            } else {
+                var dataType = self.options.remoteDataType === 'json' ? 'json' : 'text';
+                var ajaxCallback = function(data) {
+                    var parsed = false;
+                    if (data !== false) {
+                        parsed = self.parseRemoteData(data);
+                        self.cacheWrite(filter, parsed);
                     }
-                },
-                dataType: dataType
-            });
+                    self.dom.$elem.removeClass(self.options.loadingClass);
+                    callback(parsed);
+                };
+                this.dom.$elem.addClass(this.options.loadingClass);
+                $.ajax({
+                    url: this.makeUrl(filter),
+                    success: ajaxCallback,
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        if($.isFunction(self.options.onError)) {
+                            self.options.onError(jqXHR, textStatus, errorThrown);
+                        } else {
+                          ajaxCallback(false);
+                        }
+                    },
+                    dataType: dataType
+                });
+            }
         }
     };
 
