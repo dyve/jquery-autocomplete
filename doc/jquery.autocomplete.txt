@@ -134,6 +134,9 @@ onItemSelect (default value: null)
 	attribute "extra" that contains an array of all cells that the backend specified. See the
 	source code of http://www.dyve.net/jquery?autocomplete for an example.
 
+onFetchData (default value: null)
+    A JavaScript function that will be called when an fetch data filter.
+
 autoFill (default value: false)
 	If this is set to true, the autocompleter will automatically fill the search box with the
 	first entry in the results.

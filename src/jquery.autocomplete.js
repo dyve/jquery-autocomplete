@@ -68,6 +68,7 @@
         sortResults: true,
         sortFunction: null,
         onItemSelect: null,
+        onFetchData: null,
         onNoMatch: null,
         onFinish: null,
         matchStringConverter: null,
@@ -561,11 +562,16 @@
      * @private
      */
     $.Autocompleter.prototype.fetchData = function(value) {
-        var self = this;
+        var self = this,
+            filter_results;
         var processResults = function(results, filter) {
             if (self.options.processData) {
                 results = self.options.processData(results);
             }
+            filter_results = self.filterResults(results, filter);
+            // call options onFetchData fn 
+            self.callHook('onFetchData', filter_results);
+            self.showResults(filter_results, filter);
             self.showResults(self.filterResults(results, filter), filter);
         };
         this.lastProcessedValue_ = value;
